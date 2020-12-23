@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="bcprov-ext-jdk15on-166">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../Exercice/bcprov-ext-jdk15on-166.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
