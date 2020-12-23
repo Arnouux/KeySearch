@@ -1,4 +1,4 @@
-import model.Model;
+import model.*;
 
 import java.security.NoSuchAlgorithmException;
 

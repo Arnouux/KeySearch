@@ -1,14 +1,20 @@
 package model;
 
+import java.io.IOException;
+import java.math.BigInteger;
 import java.security.*;
 import java.util.Date;
 import java.util.List;
 import java.security.cert.X509Certificate;
 
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.*;
-import java.math.BigInteger;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.operator.*;
+import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 
 public class Model {
 
@@ -25,34 +31,49 @@ public class Model {
     public void populate() throws NoSuchAlgorithmException {
         System.out.println("populate");
 
-        // Le DN du CA
-        final String DN = "CN=RootCA, OU=M2, O=miage, L=Mulhouse, ST=68093, C=FR";
+        // Certificate Issuer Distinguished Name
+        final String DN = "CN=RootCA, OU=M2, O=BestGroup, L=SomewhereInFrance, ST=24242, C=FR";
         X500Name caDn = new X500Name(DN);
 
+        // TODO: 1_Generate this.certs using CertificateBuilder and CertificateHandler
+        // CertificateBuilder
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
         KeyPair caKp = kpg.generateKeyPair();
         byte[] encodedPbKey = caKp.getPublic().getEncoded();
         SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(encodedPbKey);
 
-        // TODO: 1_Generate this.certs using CertificateBuilder and CertificateHandler
         X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
-                // nom de l'émetteur
+                // Issuer Name
                 caDn,
-                // numéro de série du certificat
+                // Certificate ID
                 generateId(),
-                // début de la période de validité
+                // Validity Period start
                 new Date(System.currentTimeMillis()),
-                // fin de la période de validité
+                // Validity Period end
                 new Date(System.currentTimeMillis() + (long) 365 * 24 * 60 * 60 * 1000),
-                // le nom du sujet
+                // Subject Name
                 caDn,
-                // la clé publique enveloppée dans le certificat
+                // Public Key wrapped in Certificate
                 subjectPublicKeyInfo
         );
-
-
-        X509v3CertificateBuilder v3CertGen;
+        // CertificateHolder
+        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1WithRSAEncryption");
+        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+        PrivateKey caPk = caKp.getPrivate();
+        AsymmetricKeyParameter privateKeyAsymKeyParam = null;
+        try {
+            privateKeyAsymKeyParam = PrivateKeyFactory.createKey(caPk.getEncoded());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ContentSigner sigGen = null;
+        try {
+            sigGen = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(privateKeyAsymKeyParam);
+        } catch (OperatorCreationException e) {
+            e.printStackTrace();
+        }
+        X509CertificateHolder holder = builder.build(sigGen);
 
         // TODO: 2_Generate this.keys
         // TODO: 3_Generate this.ks
