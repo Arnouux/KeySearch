@@ -15,13 +15,22 @@ public class Model {
     private List<KeyStore> ks;
 
     public void populate(){
+        // TODO: 1_Generate this.certs using CertificateBuilder and CertificateHandler
         X509v3CertificateBuilder v3CertGen;
+
+        // TODO: 2_Generate this.keys
+        // TODO: 3_Generate this.ks
     }
 
     public void test(){
-        /*X509Certificate c = certs.get(0);
+        /*
+        X509Certificate c = certs.get(0);
         Principal p1 = c.getSubjectDN();
         Principal p2 = c.getIssuerDN();
-        System.out.println("Subject: " + p1 + "\nIssuer: " + p2);*/
+        System.out.println("Subject: " + p1 + "\nIssuer: " + p2);
+        */
+        // TODO: 1.1_Try to find a certificate in this.certs by its DistinguishedName
+        // TODO: 4_Try to find a certificate in this.ks by its DistinguishedName
+        //
     }
 }
