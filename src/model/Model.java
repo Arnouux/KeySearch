@@ -16,6 +16,7 @@ public class Model {
 
     public void populate(){
         // TODO: 1_Generate this.certs using CertificateBuilder and CertificateHandler
+        System.out.println("populate");
         X509v3CertificateBuilder v3CertGen;
 
         // TODO: 2_Generate this.keys
