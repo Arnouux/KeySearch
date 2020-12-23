@@ -1,7 +1,9 @@
 <component name="libraryTable">
   <library name="bcpkix-jdk15on-166">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../Exercice/bcpkix-jdk15on-166.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../crypto_ca/bcpkix-jdk15on-166.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../crypto_ca/commons-codec-1.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../crypto_ca/bcprov-ext-jdk15on-166.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
