@@ -1,6 +1,7 @@
 package model;
 
 import java.security.*;
+import java.util.Date;
 import java.util.List;
 import java.security.cert.X509Certificate;
 
@@ -35,7 +36,7 @@ public class Model {
         SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(encodedPbKey);
 
         // TODO: 1_Generate this.certs using CertificateBuilder and CertificateHandler
-        this.certs = new X509v3CertificateBuilder(
+        X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
                 // nom de l'émetteur
                 caDn,
                 // numéro de série du certificat
