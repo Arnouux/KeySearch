@@ -14,14 +14,14 @@ public class Model {
     private List<PrivateKey> keys;
     private List<KeyStore> ks;
 
-    private void test(){
-        X509Certificate c = certs.get(0);
-        Principal p1 = c.getSubjectDN();
-        Principal p2 = c.getIssuerDN();
-        System.out.println("Subject: " + p1 + "\nIssuer: " + p2);
-    }
-
     public void populate(){
         X509v3CertificateBuilder v3CertGen;
+    }
+
+    public void test(){
+        /*X509Certificate c = certs.get(0);
+        Principal p1 = c.getSubjectDN();
+        Principal p2 = c.getIssuerDN();
+        System.out.println("Subject: " + p1 + "\nIssuer: " + p2);*/
     }
 }
