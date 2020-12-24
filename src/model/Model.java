@@ -1,8 +1,13 @@
 package model;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.Date;
 import java.util.List;
 import java.security.cert.X509Certificate;
@@ -31,13 +36,13 @@ public class Model {
     public void populate() throws NoSuchAlgorithmException {
         System.out.println("populate");
 
+        // TODO: 1_Generate this.certs using CertificateBuilder and CertificateHandler
         // Certificate Issuer Distinguished Name
-        final String DN = "CN=RootCA, OU=M2, O=BestGroup, L=SomewhereInFrance, ST=24242, C=FR";
+        final String DN = "CN=BestGroup, OU=2AIR, O=UHA, L=ScatteredInFrance, ST=24242, C=FR";
         X500Name caDn = new X500Name(DN);
 
-        // TODO: 1_Generate this.certs using CertificateBuilder and CertificateHandler
         // CertificateBuilder
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        /*KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
         KeyPair caKp = kpg.generateKeyPair();
         byte[] encodedPbKey = caKp.getPublic().getEncoded();
@@ -73,7 +78,17 @@ public class Model {
         } catch (OperatorCreationException e) {
             e.printStackTrace();
         }
-        X509CertificateHolder holder = builder.build(sigGen);
+        X509CertificateHolder holder = builder.build(sigGen);*/
+
+        try {
+            InputStream is = new FileInputStream("..\\personnal_nyal.cer");
+            CertificateFactory factory = CertificateFactory.getInstance("X509");
+            X509Certificate cert = (X509Certificate) factory.generateCertificate(is);
+            is.close();
+            System.out.println(cert.toString());
+        } catch (CertificateException | IOException e) {
+            e.printStackTrace();
+        }
 
         // TODO: 2_Generate this.keys
         // TODO: 3_Generate this.ks
