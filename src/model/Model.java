@@ -49,11 +49,8 @@ public class Model {
         List<X509Certificate> certificates = new LinkedList<X509Certificate>();
         KeyStore ks = KeyStore.getInstance("JCEKS");
         InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
-        char[] pwd = new char[6];
-        for (int i= 0; i<6; i++) {
-            pwd[i] = "abc123".charAt(i);
-        }
-        ks.load(is, pwd);
+
+        ks.load(is, "abc123".toCharArray());
         Enumeration<String> aliases = ks.aliases();
         while(aliases.hasMoreElements()) {
             String alias = aliases.nextElement();
