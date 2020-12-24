@@ -45,7 +45,7 @@ public class Model {
         return result;
     }
 
-    public void openKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+    public void openKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         List<X509Certificate> certificates = new LinkedList<X509Certificate>();
         KeyStore ks = KeyStore.getInstance("JCEKS");
         InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
@@ -60,6 +60,15 @@ public class Model {
             if(ks.isCertificateEntry(alias)) {
                 certificates.add((X509Certificate) ks.getCertificate(alias));
             }
+
+            // RECUPERATE PRIVATE KEYS SO WE CAN CHECK PUBLIC KEYS OF CERTS
+            // ONLY VISIBLE ON KEY-ENTRYS
+            /*final Key key = (PrivateKey) ks.getKey(alias, "abc123".toCharArray());
+
+            final X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
+            final PublicKey publicKey = cert.getPublicKey();
+            System.out.println("publicKey : \n" + publicKey);
+            System.out.println("privateKey : \n" + key);*/
         }
         for (X509Certificate c : certificates) {
             System.out.println(c.getSubjectX500Principal());
@@ -67,10 +76,17 @@ public class Model {
                 case "DSA" :
                     System.out.println("DSA");
                     break;
+                case "RSA" :
+                    System.out.println("RSA");
+                    break;
+                case "ECDSA" :
+                    System.out.println("ECDSA");
+                    break;
                 default:
                     System.out.println("Algorithm unknown");
                     break;
             }
+
         }
     }
 
