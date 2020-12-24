@@ -52,7 +52,15 @@ public class Model {
             }
         }
         for (X509Certificate c : certificates) {
-            System.out.println(c.getPublicKey());
+            System.out.println(c.getSubjectX500Principal());
+            switch(c.getPublicKey().getAlgorithm()) {
+                case "DSA" :
+                    System.out.println("DSA");
+                    break;
+                default:
+                    System.out.println("Algorithm unknown");
+                    break;
+            }
         }
     }
 
