@@ -52,20 +52,20 @@ public class Model {
             }
         }
         for (X509Certificate c : certificates) {
-            System.out.println(c.getSubjectX500Principal());
+            System.out.println(c.getPublicKey());
         }
     }
 
-    public void populate() throws NoSuchAlgorithmException {
+    /*public void populate() throws NoSuchAlgorithmException {
         System.out.println("populate");
 
-        // TODO: 1_Generate this.certs using CertificateBuilder and CertificateHandler
+        // 1_Generate this.certs using CertificateBuilder and CertificateHandler
         // Certificate Issuer Distinguished Name
         final String DN = "CN=BestGroup, OU=2AIR, O=UHA, L=ScatteredInFrance, ST=24242, C=FR";
         X500Name caDn = new X500Name(DN);
 
         // CertificateBuilder
-        /*KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
         KeyPair caKp = kpg.generateKeyPair();
         byte[] encodedPbKey = caKp.getPublic().getEncoded();
@@ -101,7 +101,7 @@ public class Model {
         } catch (OperatorCreationException e) {
             e.printStackTrace();
         }
-        X509CertificateHolder holder = builder.build(sigGen);*/
+        X509CertificateHolder holder = builder.build(sigGen);
 
         try {
             InputStream is = new FileInputStream("key1.cer");
@@ -113,9 +113,9 @@ public class Model {
             e.printStackTrace();
         }
 
-        // TODO: 2_Generate this.keys
-        // TODO: 3_Generate this.ks
-    }
+        // 2_Generate this.keys
+        // 3_Generate this.ks
+    }*/
 
     public void test(){
         /*
@@ -124,8 +124,8 @@ public class Model {
         Principal p2 = c.getIssuerDN();
         System.out.println("Subject: " + p1 + "\nIssuer: " + p2);
         */
-        // TODO: 1.1_Try to find a certificate in this.certs by its DistinguishedName
-        // TODO: 4_Try to find a certificate in this.ks by its DistinguishedName
+        // 1.1_Try to find a certificate in this.certs by its DistinguishedName
+        // 4_Try to find a certificate in this.ks by its DistinguishedName
         //
     }
 }
