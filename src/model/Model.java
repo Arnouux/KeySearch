@@ -41,12 +41,10 @@ public class Model {
         for (int i= 0; i<6; i++) {
             pwd[i] = "abc123".charAt(i);
         }
-
         ks.load(is, pwd);
         Enumeration<String> aliases = ks.aliases();
         while(aliases.hasMoreElements()) {
             String alias = aliases.nextElement();
-            // tester si l'entrée nommée par l'alias courant est un certificat
             if(ks.isCertificateEntry(alias)) {
                 certificates.add((X509Certificate) ks.getCertificate(alias));
             }
@@ -62,78 +60,5 @@ public class Model {
                     break;
             }
         }
-    }
-
-    /*public void populate() throws NoSuchAlgorithmException {
-        System.out.println("populate");
-
-        // 1_Generate this.certs using CertificateBuilder and CertificateHandler
-        // Certificate Issuer Distinguished Name
-        final String DN = "CN=BestGroup, OU=2AIR, O=UHA, L=ScatteredInFrance, ST=24242, C=FR";
-        X500Name caDn = new X500Name(DN);
-
-        // CertificateBuilder
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        kpg.initialize(2048);
-        KeyPair caKp = kpg.generateKeyPair();
-        byte[] encodedPbKey = caKp.getPublic().getEncoded();
-        SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(encodedPbKey);
-
-        X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
-                // Issuer Name
-                caDn,
-                // Certificate ID
-                generateId(),
-                // Validity Period start
-                new Date(System.currentTimeMillis()),
-                // Validity Period end
-                new Date(System.currentTimeMillis() + (long) 365 * 24 * 60 * 60 * 1000),
-                // Subject Name
-                caDn,
-                // Public Key wrapped in Certificate
-                subjectPublicKeyInfo
-        );
-        // CertificateHolder
-        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1WithRSAEncryption");
-        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-        PrivateKey caPk = caKp.getPrivate();
-        AsymmetricKeyParameter privateKeyAsymKeyParam = null;
-        try {
-            privateKeyAsymKeyParam = PrivateKeyFactory.createKey(caPk.getEncoded());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        ContentSigner sigGen = null;
-        try {
-            sigGen = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(privateKeyAsymKeyParam);
-        } catch (OperatorCreationException e) {
-            e.printStackTrace();
-        }
-        X509CertificateHolder holder = builder.build(sigGen);
-
-        try {
-            InputStream is = new FileInputStream("key1.cer");
-            CertificateFactory factory = CertificateFactory.getInstance("X509");
-            X509Certificate cert = (X509Certificate) factory.generateCertificate(is);
-            is.close();
-            System.out.println(cert.toString());
-        } catch (CertificateException | IOException e) {
-            e.printStackTrace();
-        }
-
-        // 2_Generate this.keys
-        // 3_Generate this.ks
-    }*/
-
-    public void test(){
-        /*
-        X509Certificate c = certs.get(0);
-        Principal p1 = c.getSubjectDN();
-        Principal p2 = c.getIssuerDN();
-        System.out.println("Subject: " + p1 + "\nIssuer: " + p2);
-        */
-        // 1.1_Try to find a certificate in this.certs by its DistinguishedName
-        // 4_Try to find a certificate in this.ks by its DistinguishedName
-        //
     }
 }
