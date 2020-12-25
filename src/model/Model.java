@@ -64,29 +64,35 @@ public class Model {
 
             final X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
             final PublicKey publicKey = cert.getPublicKey();
-            if (publicKey != null) {
+            if (publicKey != null && key != null) {
                 if(publicKey instanceof RSAPublicKey) {
-                    System.out.println("RSA PublicKey :");
-                    System.out.println(((RSAPublicKey) publicKey).getPublicExponent());
+                    /*System.out.println("RSA PublicKey :");
+                    System.out.println(((RSAPublicKey) publicKey).getPublicExponent());*/
+                    System.out.println("RSA public key hash : " + publicKey.hashCode());
                 }
                 if(publicKey instanceof DSAPublicKey) {
-                    System.out.println("DSA PublicKey :");
+                    /*System.out.println("DSA PublicKey :");
                     System.out.println("P : " + ((DSAPublicKey) publicKey).getParams().getP());
                     System.out.println("G : " + ((DSAPublicKey) publicKey).getParams().getG());
-                    System.out.println("Q : " + ((DSAPublicKey) publicKey).getParams().getQ());
+                    System.out.println("Q : " + ((DSAPublicKey) publicKey).getParams().getQ());*/
+                    System.out.println("DSA public key hash : " + publicKey.hashCode());
                 }
             }
 
             if (key instanceof PrivateKey) {
                 if(key instanceof RSAPrivateKey) {
-                    System.out.println("RSA PrivateKey :");
-                    System.out.println(((RSAPrivateKey) key).getPrivateExponent());
+                    /*System.out.println("RSA PrivateKey :");
+                    System.out.println(((RSAPrivateKey) key).getPrivateExponent());*/
+
+                    System.out.println("RSA private key hash : " + key.hashCode());
                 }
                 if(key instanceof DSAPrivateKey) {
-                    System.out.println("DSA PrivateKey :");
+                    /*System.out.println("DSA PrivateKey :");
                     System.out.println("P : " + ((DSAPrivateKey) key).getParams().getP());
                     System.out.println("G : " + ((DSAPrivateKey) key).getParams().getG());
-                    System.out.println("Q : " + ((DSAPrivateKey) key).getParams().getQ());
+                    System.out.println("Q : " + ((DSAPrivateKey) key).getParams().getQ());*/
+
+                    System.out.println("DSA private key hash : " + key.hashCode());
                 }
             }
         }
@@ -95,9 +101,11 @@ public class Model {
             switch(c.getPublicKey().getAlgorithm()) {
                 case "DSA" :
                     System.out.println("DSA");
+                    System.out.println(c.getPublicKey().hashCode());
                     break;
                 case "RSA" :
                     System.out.println("RSA");
+                    System.out.println(c.getPublicKey().hashCode());
                     break;
                 case "ECDSA" :
                     System.out.println("ECDSA");
