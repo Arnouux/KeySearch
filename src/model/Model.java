@@ -2,6 +2,7 @@ package model;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -27,6 +28,11 @@ import org.bouncycastle.operator.*;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
 public class Model {
     private List<X509Certificate> certs;
     private List<PrivateKey> keys;
@@ -45,10 +51,26 @@ public class Model {
         return result;
     }
 
+    public byte[] encrypt(PublicKey key, byte[] plaintext) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA1AndMGF1Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        return cipher.doFinal(plaintext);
+    }
+
+    public byte[] decrypt(PrivateKey key, byte[] ciphertext) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException
+    {
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA1AndMGF1Padding");
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        return cipher.doFinal(ciphertext);
+    }
+
     public void openKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         List<X509Certificate> certificates = new LinkedList<X509Certificate>();
         KeyStore ks = KeyStore.getInstance("JCEKS");
         InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
+
+        // Test
+        byte[] encrypted = null;
 
         ks.load(is, "abc123".toCharArray());
         Enumeration<String> aliases = ks.aliases();
@@ -69,6 +91,20 @@ public class Model {
                     /*System.out.println("RSA PublicKey :");
                     System.out.println(((RSAPublicKey) publicKey).getPublicExponent());*/
                     System.out.println("RSA public key hash : " + publicKey.hashCode());
+
+                    try {
+                        byte[] sut = "Hello decrypt me".getBytes(StandardCharsets.UTF_8);
+                        encrypted = encrypt(publicKey, sut);
+                        System.out.println("ENCRYPTED : " + new String(encrypted, "UTF-8"));
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
                 }
                 if(publicKey instanceof DSAPublicKey) {
                     /*System.out.println("DSA PublicKey :");
@@ -85,6 +121,19 @@ public class Model {
                     System.out.println(((RSAPrivateKey) key).getPrivateExponent());*/
 
                     System.out.println("RSA private key hash : " + key.hashCode());
+
+                    try {
+                        byte[] decrypted = decrypt((PrivateKey) key, encrypted);
+                        System.out.println("DECRYPTED : " + new String(decrypted, "UTF-8"));
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
                 }
                 if(key instanceof DSAPrivateKey) {
                     /*System.out.println("DSA PrivateKey :");
