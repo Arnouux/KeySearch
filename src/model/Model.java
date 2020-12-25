@@ -95,7 +95,8 @@ public class Model {
                     try {
                         byte[] sut = "Hello decrypt me".getBytes(StandardCharsets.UTF_8);
                         encrypted = encrypt(publicKey, sut);
-                        System.out.println("ENCRYPTED : " + new String(encrypted, "UTF-8"));
+                        System.out.println("ENCRYPTED : ");
+                        System.out.println(new String(encrypted, "UTF-8"));
                     } catch (NoSuchPaddingException e) {
                         e.printStackTrace();
                     } catch (InvalidKeyException e) {
