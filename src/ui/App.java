@@ -16,6 +16,10 @@ public class App extends JFrame {
     JTextField input = new JTextField(20);
     JScrollPane jspName = new JScrollPane(input);
 
+    // Certificate
+    JFileChooser fileChooser = new JFileChooser();
+    JScrollPane jspCertificate = new JScrollPane(fileChooser);
+
     public App() {
         super("KeySearch");
 
@@ -80,6 +84,7 @@ public class App extends JFrame {
     private void updatePanels(String value) {
         this.remove(jspKey);
         this.remove(jspName);
+        this.remove(jspCertificate);
 
         switch(value) {
             case "Key":
@@ -94,6 +99,8 @@ public class App extends JFrame {
                 break;
             case "Certificate":
                 System.out.println("Certificate");
+                this.add(jspCertificate, BorderLayout.SOUTH);
+                this.setPreferredSize(new Dimension(600, 430));
                 break;
             default:break;
         }
