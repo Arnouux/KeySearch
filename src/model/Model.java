@@ -60,12 +60,35 @@ public class Model {
 
             // RECUPERATE PRIVATE KEYS SO WE CAN CHECK PUBLIC KEYS OF CERTS
             // ONLY VISIBLE ON KEY-ENTRYS
-            /*final Key key = (PrivateKey) ks.getKey(alias, "abc123".toCharArray());
+            final Key key = (PrivateKey) ks.getKey(alias, "abc123".toCharArray());
 
             final X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
             final PublicKey publicKey = cert.getPublicKey();
-            System.out.println("publicKey : \n" + publicKey);
-            System.out.println("privateKey : \n" + key);*/
+            if (publicKey != null) {
+                if(publicKey instanceof RSAPublicKey) {
+                    System.out.println("RSA PublicKey :");
+                    System.out.println(((RSAPublicKey) publicKey).getPublicExponent());
+                }
+                if(publicKey instanceof DSAPublicKey) {
+                    System.out.println("DSA PublicKey :");
+                    System.out.println("P : " + ((DSAPublicKey) publicKey).getParams().getP());
+                    System.out.println("G : " + ((DSAPublicKey) publicKey).getParams().getG());
+                    System.out.println("Q : " + ((DSAPublicKey) publicKey).getParams().getQ());
+                }
+            }
+
+            if (key instanceof PrivateKey) {
+                if(key instanceof RSAPrivateKey) {
+                    System.out.println("RSA PrivateKey :");
+                    System.out.println(((RSAPrivateKey) key).getPrivateExponent());
+                }
+                if(key instanceof DSAPrivateKey) {
+                    System.out.println("DSA PrivateKey :");
+                    System.out.println("P : " + ((DSAPrivateKey) key).getParams().getP());
+                    System.out.println("G : " + ((DSAPrivateKey) key).getParams().getG());
+                    System.out.println("Q : " + ((DSAPrivateKey) key).getParams().getQ());
+                }
+            }
         }
         for (X509Certificate c : certificates) {
             System.out.println(c.getSubjectX500Principal());
