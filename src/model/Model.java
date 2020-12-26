@@ -7,10 +7,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.DSAPrivateKey;
-import java.security.interfaces.DSAPublicKey;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
+import java.security.interfaces.*;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedList;
@@ -38,17 +35,10 @@ public class Model {
     private List<PrivateKey> keys;
     private List<KeyStore> ks;
 
-    public BigInteger generateId() {
-        BigInteger counter = BigInteger.ONE;
-        counter = counter.add(BigInteger.ONE);
-        return counter;
-    }
-
-    public KeyType identifyKeyType(PrivateKey pKey){
-        KeyType result;
-        // TODO: Identify KeyType from Key
-        result = KeyType.RSA;
-        return result;
+    public byte[] decrypt(PrivateKey key, byte[] ciphertext) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA1AndMGF1Padding");
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        return cipher.doFinal(ciphertext);
     }
 
     public byte[] encrypt(PublicKey key, byte[] plaintext) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException {
@@ -57,11 +47,28 @@ public class Model {
         return cipher.doFinal(plaintext);
     }
 
-    public byte[] decrypt(PrivateKey key, byte[] ciphertext) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException
-    {
-        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA1AndMGF1Padding");
-        cipher.init(Cipher.DECRYPT_MODE, key);
-        return cipher.doFinal(ciphertext);
+    public BigInteger generateId() {
+        BigInteger counter = BigInteger.ONE;
+        counter = counter.add(BigInteger.ONE);
+        return counter;
+    }
+
+    public KeyType identifyPrivateKeyType(PrivateKey key){
+        KeyType result = KeyType.DSA;
+        if(key instanceof ECPrivateKey)
+            result = KeyType.ECDSA;
+        if(key instanceof RSAPrivateKey)
+            result = KeyType.RSA;
+        return result;
+    }
+
+    public KeyType identifyPublicKeyType(PublicKey key){
+        KeyType result = KeyType.DSA;
+        if(key instanceof ECPublicKey)
+            result = KeyType.ECDSA;
+        if(key instanceof RSAPublicKey)
+            result = KeyType.RSA;
+        return result;
     }
 
     public void openKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
@@ -97,13 +104,7 @@ public class Model {
                         encrypted = encrypt(publicKey, sut);
                         System.out.println("ENCRYPTED : ");
                         System.out.println(new String(encrypted, "UTF-8"));
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
+                    } catch (NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
                         e.printStackTrace();
                     }
                 }
@@ -164,30 +165,27 @@ public class Model {
                     System.out.println("Algorithm unknown");
                     break;
             }
-
         }
     }
 
-    public boolean ValidDSAKeyPair(DSAPublicKey pubKey, DSAPrivateKey privKey){
-        boolean result;
+    public boolean validDSAKeyPair(DSAPublicKey pubKey, DSAPrivateKey privKey){
+        boolean result = false;
         // TODO: Verify if DSA public/private key pair is valid
         // Get p, g, y parameters from pubKey
         // Check if y = g^privKey mod p
         // Yes => result = true;
-        result = false;
         return result;
     }
 
-    public boolean ValidECDSAKeyPair(){
-        // TODO: WTF is an ECDSA key??!
-        return false;
+    public boolean validECDSAKeyPair(ECPublicKey pubKey, ECPrivateKey privKey){
+        boolean result = false;
+        // TODO: Verify if ECDSA public/private key pair is valid
+        return result;
     }
 
-    public boolean ValidRSAKeyPair(RSAPublicKey pubKey, RSAPrivateKey privKey){
-        boolean result;
+    public boolean validRSAKeyPair(RSAPublicKey pubKey, RSAPrivateKey privKey){
+        boolean result = false;
         // TODO: Verify if RSA public/private key pair is valid
-        result = false;
         return result;
     }
-
 }
