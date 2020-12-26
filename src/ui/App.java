@@ -151,20 +151,8 @@ public class App extends JFrame {
                             System.out.println(privKey);
                             try {
                                 model.testArthur(privKey);
-                            } catch (KeyStoreException keyStoreException) {
-                                keyStoreException.printStackTrace();
-                            } catch (IOException ioException) {
-                                ioException.printStackTrace();
-                            } catch (CertificateException certificateException) {
-                                certificateException.printStackTrace();
-                            } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
-                                noSuchAlgorithmException.printStackTrace();
-                            } catch (UnrecoverableKeyException unrecoverableKeyException) {
-                                unrecoverableKeyException.printStackTrace();
-                            } catch (SignatureException signatureException) {
-                                signatureException.printStackTrace();
-                            } catch (InvalidKeyException invalidKeyException) {
-                                invalidKeyException.printStackTrace();
+                            } catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | SignatureException | InvalidKeyException error) {
+                                error.printStackTrace();
                             }
                         }
                         else if (button == optionName) {
