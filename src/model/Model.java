@@ -64,7 +64,7 @@ public class Model {
         return result;
     }
 
-    public void testArthur() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
+    public void testArthur() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, SignatureException, InvalidKeyException {
         List<X509Certificate> certificates = new LinkedList<X509Certificate>();
         KeyStore ks = KeyStore.getInstance("JCEKS");
         InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
@@ -144,23 +144,67 @@ public class Model {
         }
     }
 
-    private void searchInCertificates(List<X509Certificate> certs, String type, PrivateKey key) {
+    public void testGregoire() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, NoSuchPaddingException, InvalidKeyException, SignatureException {
+        List<X509Certificate> certificates = new LinkedList<X509Certificate>();
+        KeyStore ks = KeyStore.getInstance("JCEKS");
+        InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
+        ks.load(is, "abc123".toCharArray());
+        Enumeration<String> aliases = ks.aliases();
+
+        while(aliases.hasMoreElements()){
+            String currAlias = aliases.nextElement();
+            if (ks.isCertificateEntry(currAlias)) {
+                certificates.add((X509Certificate) ks.getCertificate(currAlias));
+            }
+        }
+
+        PrivateKey privKey = null;
+        try{
+            privKey = (PrivateKey) ks.getKey("firstKey", "abc123".toCharArray());
+        } catch(ClassCastException e) {
+            e.printStackTrace();
+        }
+
+        if(privKey instanceof DSAPrivateKey){
+            System.out.println("DSA PrivateKey");
+            searchInCertificates(certificates, "DSA", privKey);
+        }
+        else if(privKey instanceof ECPrivateKey){
+            System.out.println("ECDSA PrivateKey");
+            searchInCertificates(certificates, "ECDSA", privKey);
+        }
+        else if(privKey instanceof RSAPrivateKey){
+            System.out.println("RSA PrivateKey");
+            searchInCertificates(certificates, "RSA", privKey);
+        }
+        else if (privKey == null){
+            System.out.println("Key not found");
+        }
+        else {
+            System.out.println(privKey.getClass());
+            System.out.println("Key type is not handled.");
+        }
+    }
+
+    private void searchInCertificates(List<X509Certificate> certs, String type, PrivateKey key) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         boolean tokenCertificateFound = false;
         for (X509Certificate c : certs) {
-            //System.out.println(c.getSubjectX500Principal());
             switch (c.getPublicKey().getAlgorithm()) {
                 case "DSA":
-                    //System.out.println("DSA");
-                    //System.out.println(c.getPublicKey().hashCode());
-                    break;
-                case "RSA":
-                    //System.out.println("RSA");
-                    //System.out.println(c.getPublicKey().hashCode());
-                    if (type.equals("RSA"))
-                        if(validRSAKeyPair((RSAPublicKey) c.getPublicKey(), (RSAPrivateKey) key)) {
+                    if (type.equals("DSA")) {
+                        if(validDSAKeyPair((DSAPrivateKey) key, (DSAPublicKey) c.getPublicKey())) {
                             System.out.println(c.getIssuerDN());
                             tokenCertificateFound = true;
                         }
+                    }
+                    break;
+                case "RSA":
+                    if (type.equals("RSA")) {
+                        if(validRSAKeyPair((RSAPrivateKey) key, (RSAPublicKey) c.getPublicKey())) {
+                            System.out.println(c.getIssuerDN());
+                            tokenCertificateFound = true;
+                        }
+                    }
                     break;
                 case "ECDSA":
                     System.out.println("ECDSA");
@@ -180,53 +224,26 @@ public class Model {
         }
     }
 
-    public void testGregoire() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, NoSuchPaddingException, InvalidKeyException, SignatureException {
-        /*List<X509Certificate> certificates = new LinkedList<X509Certificate>();
-        KeyStore ks = KeyStore.getInstance("JCEKS");
-        InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
-        ks.load(is, "abc123".toCharArray());
-        Enumeration<String> aliases = ks.aliases();
-
-        while(aliases.hasMoreElements()){
-            String currAlias = aliases.nextElement();
-
-        }*/
-        // Sign the message in fileName
-        PrivateKey privKey = null;
-        Signature signer = Signature.getInstance("SHA1withDSA");
+    public boolean validDSAKeyPair(DSAPrivateKey privKey, DSAPublicKey pubKey) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
+        // TODO: Verify if DSA public/private key pair is valid
+        Signature signer = Signature.getInstance("SHA256withDSA");
         signer.initSign(privKey);
         byte[] message = "This message must be signed in DSA".getBytes(StandardCharsets.UTF_8);
         signer.update(message, 0, message.length);
         byte[] signatureGenerated = signer.sign();
 
-        // Verify the signature
-        PublicKey pubKey = null;
-        byte[] signatureReceived = null;
         signer.initVerify(pubKey);
         signer.update(message, 0, message.length);
-        boolean verif = signer.verify(signatureReceived);
+        return signer.verify(signatureGenerated);
     }
 
-    public boolean validDSAKeyPair(DSAPublicKey pubKey, DSAPrivateKey privKey){
-        boolean result = false;
-        // TODO: Verify if DSA public/private key pair is valid
-        // Method 1:
-        // Sign default message with dsa key
-        // Verify signature said message
-        // Method 2:
-        // Get p, g, y parameters from pubKey
-        // Check if y = g^privKey mod p
-        // Yes => result = true;
-        return result;
-    }
-
-    public boolean validECDSAKeyPair(ECPublicKey pubKey, ECPrivateKey privKey){
+    public boolean validECDSAKeyPair(ECPrivateKey privKey, ECPublicKey pubKey){
         boolean result = false;
         // TODO: Verify if ECDSA public/private key pair is valid
         return result;
     }
 
-    public boolean validRSAKeyPair(RSAPublicKey publicKey, RSAPrivateKey privateKey){
+    public boolean validRSAKeyPair(RSAPrivateKey privateKey, RSAPublicKey publicKey){
         boolean result = false;
 
         String message =  "Hello decrypt me";
