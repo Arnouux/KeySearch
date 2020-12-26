@@ -159,25 +159,39 @@ public class Model {
         }
     }
 
-    public void testGregoire() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException{
-        List<X509Certificate> certificates = new LinkedList<X509Certificate>();
+    public void testGregoire() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, NoSuchPaddingException, InvalidKeyException, SignatureException {
+        /*List<X509Certificate> certificates = new LinkedList<X509Certificate>();
         KeyStore ks = KeyStore.getInstance("JCEKS");
         InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
+        ks.load(is, "abc123".toCharArray());
+        Enumeration<String> aliases = ks.aliases();
 
+        while(aliases.hasMoreElements()){
+            String currAlias = aliases.nextElement();
+
+        }*/
+        // Sign the message in fileName
+        PrivateKey privKey = null;
+        Signature signer = Signature.getInstance("SHA1withDSA");
+        signer.initSign(privKey);
+        byte[] message = "This message must be signed in DSA".getBytes(StandardCharsets.UTF_8);
+        signer.update(message, 0, message.length);
+        byte[] signatureGenerated = signer.sign();
+
+        // Verify the signature
+        PublicKey pubKey = null;
+        byte[] signatureReceived = null;
+        signer.initVerify(pubKey);
+        signer.update(message, 0, message.length);
+        boolean verif = signer.verify(signatureReceived);
     }
 
     public boolean validDSAKeyPair(DSAPublicKey pubKey, DSAPrivateKey privKey){
         boolean result = false;
         // TODO: Verify if DSA public/private key pair is valid
-        for (Provider provider: Security.getProviders()) {
-            System.out.println(provider.getName());
-            for (String key: provider.stringPropertyNames())
-                System.out.println("\t" + key + "\t" + provider.getProperty(key));
-        }
         // Method 1:
-        // Encrypt default message with dsa key
-        // Decrypt said message
-        // Compare input/output messages
+        // Sign default message with dsa key
+        // Verify signature said message
         // Method 2:
         // Get p, g, y parameters from pubKey
         // Check if y = g^privKey mod p
