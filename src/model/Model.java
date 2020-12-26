@@ -26,17 +26,23 @@ import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyPairGeneratorSpi;
 import org.bouncycastle.operator.*;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
+import ui.App;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.swing.*;
 
 public class Model {
     private List<X509Certificate> certs;
     private List<PrivateKey> keys;
     private List<KeyStore> ks;
+
+    private App app;
+
+    public void setApp(App app) {
+        this.app = app;
+    }
 
     public byte[] decrypt(PrivateKey key, byte[] ciphertext) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA1AndMGF1Padding");
@@ -139,6 +145,7 @@ public class Model {
 
     private void searchInCertificates(List<X509Certificate> certs, String type, PrivateKey key) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         boolean tokenCertificateFound = false;
+        X509Certificate matchCertificate = null;
         for (X509Certificate c : certs) {
             switch (c.getPublicKey().getAlgorithm()) {
                 case "DSA":
@@ -146,6 +153,7 @@ public class Model {
                         if(validDSAKeyPair((DSAPrivateKey) key, (DSAPublicKey) c.getPublicKey())) {
                             System.out.println(c.getIssuerDN());
                             tokenCertificateFound = true;
+                            matchCertificate = c;
                         }
                     }
                     break;
@@ -154,6 +162,7 @@ public class Model {
                         if(validRSAKeyPair((RSAPrivateKey) key, (RSAPublicKey) c.getPublicKey())) {
                             System.out.println(c.getIssuerDN());
                             tokenCertificateFound = true;
+                            matchCertificate = c;
                         }
                     }
                     break;
@@ -170,6 +179,7 @@ public class Model {
         }
         if(tokenCertificateFound) {
             System.out.println("Certificate found");
+            app.exportCertificate(matchCertificate);
         } else {
             System.out.println("No certificate found");
         }

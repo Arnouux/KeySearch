@@ -19,5 +19,6 @@ public class Main {
         app.pack();
         app.setVisible(true);
         app.setModel(model);
+        model.setApp(app);
     }
 }

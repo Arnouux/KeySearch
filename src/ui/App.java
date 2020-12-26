@@ -9,6 +9,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Enumeration;
@@ -255,7 +256,7 @@ public class App extends JFrame {
                             ksTry.load(is, pwd.toCharArray());
                             ks = ksTry;
                         } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
-                            e.printStackTrace();
+                            //e.printStackTrace();
                         }
                     }
                     if (ks != null) {
@@ -274,6 +275,22 @@ public class App extends JFrame {
         if (fileChooserKeyStore.getSelectedFile() != null ||
                 (fileChooserCertificate.getSelectedFile() != null && fileChooserKeys.getSelectedFile() != null)) {
             this.searchButton.setEnabled(true);
+        }
+    }
+
+    public void exportCertificate(X509Certificate certificate) {
+        String[] options = {"Add in KeyStore", "Export in file"};
+        int response = JOptionPane.showOptionDialog(this, "Certificate found !", "Certificate found", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+        switch (response) {
+            case 0:
+                System.out.println("Add in KeyStore");
+                break;
+            case 1:
+                System.out.println("Export in file");
+                break;
+            default:
+                break;
         }
     }
 
