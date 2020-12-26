@@ -1,7 +1,9 @@
 package ui;
+import model.KeyType;
 import model.Model;
 
 import javax.swing.*;
+import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -137,17 +139,17 @@ public class App extends JFrame {
                             byte[] decodedBytes = java.util.Base64.getDecoder().decode(text);
                             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedBytes);
                             KeyFactory kf = null;
-                            try {
-                                kf = KeyFactory.getInstance("RSA");
-                            } catch (NoSuchAlgorithmException error) {
-                                error.printStackTrace();
-                            }
                             PrivateKey privKey = null;
-                            try {
-                                privKey = kf.generatePrivate(keySpec);
-                            } catch (InvalidKeySpecException invalidKeySpecException) {
-                                invalidKeySpecException.printStackTrace();
+
+                            for(KeyType type : KeyType.values()) {
+                                try {
+                                    kf = KeyFactory.getInstance(type.name());
+                                    privKey = kf.generatePrivate(keySpec);
+                                } catch (NoSuchAlgorithmException | InvalidKeySpecException error) {
+                                    System.out.println("Not " + type.name() + " key type.");
+                                }
                             }
+
                             System.out.println(privKey);
                             try {
                                 model.testArthur(privKey);
