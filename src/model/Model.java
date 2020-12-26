@@ -38,7 +38,7 @@ public class Model {
         return counter;
     }
 
-    public KeyType identifyKeyType(){
+    public KeyType identifyKeyType(PrivateKey pKey){
         KeyType result;
         // TODO: Identify KeyType from Key
         result = KeyType.RSA;
@@ -77,6 +77,9 @@ public class Model {
     public boolean ValidDSAKeyPair(DSAPublicKey pubKey, DSAPrivateKey privKey){
         boolean result;
         // TODO: Verify if DSA public/private key pair is valid
+        // Get p, g, y parameters from pubKey
+        // Check if y = g^privKey mod p
+        // Yes => result = true;
         result = false;
         return result;
     }
