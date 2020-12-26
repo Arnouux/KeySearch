@@ -4,6 +4,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -67,95 +68,112 @@ public class Model {
         KeyStore ks = KeyStore.getInstance("JCEKS");
         InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
 
-        // Test
-        byte[] encrypted = null;
 
         ks.load(is, "abc123".toCharArray());
         Enumeration<String> aliases = ks.aliases();
+
+
         while(aliases.hasMoreElements()) {
             String alias = aliases.nextElement();
-            if(ks.isCertificateEntry(alias)) {
+            if (ks.isCertificateEntry(alias)) {
                 certificates.add((X509Certificate) ks.getCertificate(alias));
             }
-
+        }
+        /*
             // RECUPERATE PRIVATE KEYS SO WE CAN CHECK PUBLIC KEYS OF CERTS
             // ONLY VISIBLE ON KEY-ENTRYS
-            final Key key = (PrivateKey) ks.getKey(alias, "abc123".toCharArray());
+            //final Key key = (PrivateKey) ks.getKey(alias, "abc123".toCharArray());
 
             final X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
             final PublicKey publicKey = cert.getPublicKey();
             if (publicKey != null && key != null) {
                 if(publicKey instanceof RSAPublicKey) {
-                    /*System.out.println("RSA PublicKey :");
-                    System.out.println(((RSAPublicKey) publicKey).getPublicExponent());*/
+                    System.out.println("RSA PublicKey :");
+                    System.out.println(((RSAPublicKey) publicKey).getPublicExponent());
                     System.out.println("RSA public key hash : " + publicKey.hashCode());
-
-                    try {
-                        byte[] sut = "Hello decrypt me".getBytes(StandardCharsets.UTF_8);
-                        encrypted = encrypt(publicKey, sut);
-                        System.out.println("ENCRYPTED : ");
-                        System.out.println(new String(encrypted, "UTF-8"));
-                    } catch (NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    }
                 }
                 if(publicKey instanceof DSAPublicKey) {
-                    /*System.out.println("DSA PublicKey :");
+                    System.out.println("DSA PublicKey :");
                     System.out.println("P : " + ((DSAPublicKey) publicKey).getParams().getP());
                     System.out.println("G : " + ((DSAPublicKey) publicKey).getParams().getG());
-                    System.out.println("Q : " + ((DSAPublicKey) publicKey).getParams().getQ());*/
+                    System.out.println("Q : " + ((DSAPublicKey) publicKey).getParams().getQ());
                     System.out.println("DSA public key hash : " + publicKey.hashCode());
                 }
             }
 
             if (key instanceof PrivateKey) {
                 if(key instanceof RSAPrivateKey) {
-                    /*System.out.println("RSA PrivateKey :");
-                    System.out.println(((RSAPrivateKey) key).getPrivateExponent());*/
-
+                    System.out.println("RSA PrivateKey :");
+                    System.out.println(((RSAPrivateKey) key).getPrivateExponent());
                     System.out.println("RSA private key hash : " + key.hashCode());
-
-                    try {
-                        byte[] decrypted = decrypt((PrivateKey) key, encrypted);
-                        System.out.println("DECRYPTED : " + new String(decrypted, "UTF-8"));
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    } catch (IllegalBlockSizeException e) {
-                        e.printStackTrace();
-                    } catch (BadPaddingException e) {
-                        e.printStackTrace();
-                    }
                 }
                 if(key instanceof DSAPrivateKey) {
-                    /*System.out.println("DSA PrivateKey :");
+                    System.out.println("DSA PrivateKey :");
                     System.out.println("P : " + ((DSAPrivateKey) key).getParams().getP());
                     System.out.println("G : " + ((DSAPrivateKey) key).getParams().getG());
-                    System.out.println("Q : " + ((DSAPrivateKey) key).getParams().getQ());*/
-
+                    System.out.println("Q : " + ((DSAPrivateKey) key).getParams().getQ());
                     System.out.println("DSA private key hash : " + key.hashCode());
                 }
             }
+        }*/
+
+        PrivateKey key = null;
+        try {
+            key = (PrivateKey) ks.getKey("keyrsa", "abc123".toCharArray());
+        } catch (ClassCastException e) {
+            e.printStackTrace();
         }
-        for (X509Certificate c : certificates) {
-            System.out.println(c.getSubjectX500Principal());
-            switch(c.getPublicKey().getAlgorithm()) {
-                case "DSA" :
-                    System.out.println("DSA");
-                    System.out.println(c.getPublicKey().hashCode());
+
+        if(key instanceof RSAPrivateKey) {
+            System.out.println("RSA PrivateKey");
+            searchInCertificates(certificates, "RSA", key);
+        }
+        else if (key instanceof DSAPrivateKey) {
+            System.out.println("DSA PrivateKey");
+            searchInCertificates(certificates, "DSA", key);
+        }
+        else if (key == null) {
+            System.out.println("Key not found");
+        }
+        else {
+            System.out.println(key.getClass());
+            System.out.println("Key type is not handled.");
+        }
+    }
+
+    private void searchInCertificates(List<X509Certificate> certs, String type, PrivateKey key) {
+        boolean tokenCertificatefound = false;
+        for (X509Certificate c : certs) {
+            //System.out.println(c.getSubjectX500Principal());
+            switch (c.getPublicKey().getAlgorithm()) {
+                case "DSA":
+                    //System.out.println("DSA");
+                    //System.out.println(c.getPublicKey().hashCode());
                     break;
-                case "RSA" :
-                    System.out.println("RSA");
-                    System.out.println(c.getPublicKey().hashCode());
+                case "RSA":
+                    //System.out.println("RSA");
+                    //System.out.println(c.getPublicKey().hashCode());
+                    if (type.equals("RSA"))
+                        if(validRSAKeyPair((RSAPublicKey) c.getPublicKey(), (RSAPrivateKey) key)) {
+                            System.out.println(c.getIssuerDN());
+                            tokenCertificatefound = true;
+                        }
                     break;
-                case "ECDSA" :
+                case "ECDSA":
                     System.out.println("ECDSA");
                     break;
                 default:
                     System.out.println("Algorithm unknown");
                     break;
             }
+            if(tokenCertificatefound) {
+                break;
+            }
+        }
+        if(tokenCertificatefound) {
+            System.out.println("Certificate found");
+        } else {
+            System.out.println("No certificate found");
         }
     }
 
@@ -191,9 +209,32 @@ public class Model {
         return result;
     }
 
-    public boolean validRSAKeyPair(RSAPublicKey pubKey, RSAPrivateKey privKey){
+    public boolean validRSAKeyPair(RSAPublicKey publicKey, RSAPrivateKey privateKey){
         boolean result = false;
-        // TODO: Verify if RSA public/private key pair is valid
+
+        String message =  "Hello decrypt me";
+
+        byte[] encrypted = null;
+        try {
+            byte[] sut = message.getBytes(StandardCharsets.UTF_8);
+            encrypted = encrypt(publicKey, sut);
+            //System.out.println("ENCRYPTED : ");
+            //System.out.println(new String(encrypted, "UTF-8"));
+        } catch (NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        String decrypted = null;
+        try {
+            decrypted = new String(decrypt((PrivateKey) privateKey, encrypted), "UTF-8");
+            //System.out.println("DECRYPTED : " + decrypted);
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        //System.out.println(message.equals(decrypted));
+        result = message.equals(decrypted);
+
         return result;
     }
 }
