@@ -31,6 +31,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.*;
 
 public class Model {
     private List<X509Certificate> certs;
@@ -65,12 +66,9 @@ public class Model {
         return result;
     }
 
-    public void testArthur(PrivateKey key) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, SignatureException, InvalidKeyException {
+    public void searchByKey(PrivateKey key, KeyStore ks) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, SignatureException, InvalidKeyException {
         List<X509Certificate> certificates = new LinkedList<X509Certificate>();
-        KeyStore ks = KeyStore.getInstance("JCEKS");
-        InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
 
-        ks.load(is, "abc123".toCharArray());
         Enumeration<String> aliases = ks.aliases();
 
         while(aliases.hasMoreElements()) {
@@ -79,50 +77,6 @@ public class Model {
                 certificates.add((X509Certificate) ks.getCertificate(alias));
             }
         }
-        /*
-            // RECUPERATE PRIVATE KEYS SO WE CAN CHECK PUBLIC KEYS OF CERTS
-            // ONLY VISIBLE ON KEY-ENTRYS
-            //final Key key = (PrivateKey) ks.getKey(alias, "abc123".toCharArray());
-
-            final X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
-            final PublicKey publicKey = cert.getPublicKey();
-            if (publicKey != null && key != null) {
-                if(publicKey instanceof RSAPublicKey) {
-                    System.out.println("RSA PublicKey :");
-                    System.out.println(((RSAPublicKey) publicKey).getPublicExponent());
-                    System.out.println("RSA public key hash : " + publicKey.hashCode());
-                }
-                if(publicKey instanceof DSAPublicKey) {
-                    System.out.println("DSA PublicKey :");
-                    System.out.println("P : " + ((DSAPublicKey) publicKey).getParams().getP());
-                    System.out.println("G : " + ((DSAPublicKey) publicKey).getParams().getG());
-                    System.out.println("Q : " + ((DSAPublicKey) publicKey).getParams().getQ());
-                    System.out.println("DSA public key hash : " + publicKey.hashCode());
-                }
-            }
-
-            if (key instanceof PrivateKey) {
-                if(key instanceof RSAPrivateKey) {
-                    System.out.println("RSA PrivateKey :");
-                    System.out.println(((RSAPrivateKey) key).getPrivateExponent());
-                    System.out.println("RSA private key hash : " + key.hashCode());
-                }
-                if(key instanceof DSAPrivateKey) {
-                    System.out.println("DSA PrivateKey :");
-                    System.out.println("P : " + ((DSAPrivateKey) key).getParams().getP());
-                    System.out.println("G : " + ((DSAPrivateKey) key).getParams().getG());
-                    System.out.println("Q : " + ((DSAPrivateKey) key).getParams().getQ());
-                    System.out.println("DSA private key hash : " + key.hashCode());
-                }
-            }
-        }*/
-
-        /*PrivateKey key = null;
-        try {
-            key = (PrivateKey) ks.getKey("keyrsa", "abc123".toCharArray());
-        } catch (ClassCastException e) {
-            e.printStackTrace();
-        }*/
 
         if(key instanceof RSAPrivateKey) {
             System.out.println("RSA PrivateKey");
@@ -136,12 +90,8 @@ public class Model {
             System.out.println("ECDSA PrivateKey");
             searchInCertificates(certificates, "ECDSA", key);
         }
-        else if (key == null) {
-            System.out.println("Key not found");
-        }
         else {
-            System.out.println(key.getClass());
-            System.out.println("Key type is not handled.");
+            System.out.println("Key type is not handled or false.");
         }
     }
 
