@@ -55,6 +55,7 @@ public class Model {
     }
 
     public KeyType identifyKeyType(Key key){
+        // TODO: Need to be re-done, to extract type from String
         KeyType result = KeyType.DSA;
         if(key instanceof ECPrivateKey || key instanceof ECPublicKey)
             result = KeyType.ECDSA;
@@ -68,10 +69,8 @@ public class Model {
         KeyStore ks = KeyStore.getInstance("JCEKS");
         InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
 
-
         ks.load(is, "abc123".toCharArray());
         Enumeration<String> aliases = ks.aliases();
-
 
         while(aliases.hasMoreElements()) {
             String alias = aliases.nextElement();
