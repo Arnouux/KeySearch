@@ -21,7 +21,10 @@ public class App extends JFrame {
     JButton buttonOpenFileChooserKeys = new JButton("Keys file");
     JLabel fileCertificateName = new JLabel("");
     JLabel fileKeysName = new JLabel("");
-    JPanel btnPanel = new JPanel(new GridLayout(3,2, 2, 2));
+    JPanel btnPanel = new JPanel(new GridLayout(2,2, 10, 2));
+
+    JPanel centerPanel = new JPanel();
+    JPanel endPanel = new JPanel();
 
     public App() {
         super("KeySearch");
@@ -72,9 +75,14 @@ public class App extends JFrame {
         group.add(optionName);
         group.add(optionCertificate);
 
-        this.add(optionKey, BorderLayout.WEST);
-        this.add(optionName, BorderLayout.CENTER);
-        this.add(optionCertificate, BorderLayout.EAST);
+        this.centerPanel.setLayout(new BorderLayout());
+        this.centerPanel.add(optionKey, BorderLayout.WEST);
+        this.centerPanel.add(optionName, BorderLayout.CENTER);
+        this.centerPanel.add(optionCertificate, BorderLayout.EAST);
+
+        //this.add(optionKey, BorderLayout.WEST);
+        //this.add(optionName, BorderLayout.CENTER);
+        //this.add(optionCertificate, BorderLayout.EAST);
 
         ItemListener listener = new ItemListener() {
             @Override
@@ -95,47 +103,52 @@ public class App extends JFrame {
         optionName.addItemListener(listener);
         optionCertificate.addItemListener(listener);
 
+        //centerPanel.setPreferredSize(new Dimension(500, 500));
+        this.add(centerPanel, BorderLayout.CENTER);
+
+        this.endPanel.setLayout(new BorderLayout());
+        JLabel endLabel = new JLabel("--------------------------------------------------------------------------------------------------------------------------------------------------");
+        this.endPanel.add(endLabel, BorderLayout.NORTH);
+        JButton searchButton = new JButton("Search !");
+        this.endPanel.add(searchButton, BorderLayout.SOUTH);
+        this.add(endPanel, BorderLayout.SOUTH);
         this.pack();
     }
 
     private void updatePanels(String value) {
-        this.remove(jspKey);
-        this.remove(jspName);
-        this.remove(buttonOpenFileChooserKeys);
-        this.remove(buttonOpenFileChooserCertificate);
-        this.remove(btnPanel);
+        this.centerPanel.remove(jspKey);
+        this.centerPanel.remove(jspName);
+        this.centerPanel.remove(buttonOpenFileChooserKeys);
+        this.centerPanel.remove(buttonOpenFileChooserCertificate);
+        this.centerPanel.remove(btnPanel);
 
         switch(value) {
             case "Key":
                 System.out.println("Key");
-                this.add(jspKey, BorderLayout.SOUTH);
+                this.centerPanel.add(jspKey, BorderLayout.SOUTH);
                 this.setPreferredSize(new Dimension(600, 600));
                 break;
             case "Name":
                 System.out.println("Name");
-                this.add(jspName, BorderLayout.SOUTH);
-                this.setPreferredSize(new Dimension(600, 110));
+                this.centerPanel.add(jspName, BorderLayout.SOUTH);
+                this.setPreferredSize(new Dimension(600, 150));
                 break;
             case "Certificate":
                 System.out.println("Certificate");
-                //this.add(buttonOpenFileChooserCertificate);
-                //this.add(buttonOpenFileChooserKeys);
 
                 btnPanel.add(buttonOpenFileChooserCertificate);
-
                 btnPanel.add(fileCertificateName);
-
                 btnPanel.add(buttonOpenFileChooserKeys);
-
                 btnPanel.add(fileKeysName);
 
-                this.add(btnPanel, BorderLayout.SOUTH);
+                this.centerPanel.add(btnPanel, BorderLayout.SOUTH);
                 //fileChooserCertificate.showOpenDialog(this);
-                this.setPreferredSize(new Dimension(600, 230));
+                this.setPreferredSize(new Dimension(600, 190));
                 break;
             default:break;
         }
         this.pack();
+        this.repaint();
     }
 
     private void showFileChooser(String value) {
