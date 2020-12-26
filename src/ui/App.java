@@ -145,12 +145,11 @@ public class App extends JFrame {
                                 try {
                                     kf = KeyFactory.getInstance(type.name());
                                     privKey = kf.generatePrivate(keySpec);
+                                    break;
                                 } catch (NoSuchAlgorithmException | InvalidKeySpecException error) {
                                     System.out.println("Not " + type.name() + " key type.");
                                 }
                             }
-
-                            System.out.println(privKey);
                             try {
                                 model.testArthur(privKey);
                             } catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | SignatureException | InvalidKeyException error) {
