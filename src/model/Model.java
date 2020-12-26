@@ -62,7 +62,7 @@ public class Model {
         return result;
     }
 
-    public void openKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
+    public void testArthur() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         List<X509Certificate> certificates = new LinkedList<X509Certificate>();
         KeyStore ks = KeyStore.getInstance("JCEKS");
         InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
@@ -159,9 +159,26 @@ public class Model {
         }
     }
 
+    public void testGregoire() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException{
+        List<X509Certificate> certificates = new LinkedList<X509Certificate>();
+        KeyStore ks = KeyStore.getInstance("JCEKS");
+        InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
+
+    }
+
     public boolean validDSAKeyPair(DSAPublicKey pubKey, DSAPrivateKey privKey){
         boolean result = false;
         // TODO: Verify if DSA public/private key pair is valid
+        for (Provider provider: Security.getProviders()) {
+            System.out.println(provider.getName());
+            for (String key: provider.stringPropertyNames())
+                System.out.println("\t" + key + "\t" + provider.getProperty(key));
+        }
+        // Method 1:
+        // Encrypt default message with dsa key
+        // Decrypt said message
+        // Compare input/output messages
+        // Method 2:
         // Get p, g, y parameters from pubKey
         // Check if y = g^privKey mod p
         // Yes => result = true;
