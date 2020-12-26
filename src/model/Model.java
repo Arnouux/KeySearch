@@ -53,20 +53,11 @@ public class Model {
         return counter;
     }
 
-    public KeyType identifyPrivateKeyType(PrivateKey key){
+    public KeyType identifyPrivateKeyType(Key key){
         KeyType result = KeyType.DSA;
-        if(key instanceof ECPrivateKey)
+        if(key instanceof ECPrivateKey || key instanceof ECPublicKey)
             result = KeyType.ECDSA;
-        if(key instanceof RSAPrivateKey)
-            result = KeyType.RSA;
-        return result;
-    }
-
-    public KeyType identifyPublicKeyType(PublicKey key){
-        KeyType result = KeyType.DSA;
-        if(key instanceof ECPublicKey)
-            result = KeyType.ECDSA;
-        if(key instanceof RSAPublicKey)
+        if(key instanceof RSAPrivateKey || key instanceof RSAPublicKey)
             result = KeyType.RSA;
         return result;
     }
