@@ -132,6 +132,10 @@ public class Model {
             System.out.println("DSA PrivateKey");
             searchInCertificates(certificates, "DSA", key);
         }
+        else if (key instanceof ECPrivateKey) {
+            System.out.println("ECDSA PrivateKey");
+            searchInCertificates(certificates, "ECDSA", key);
+        }
         else if (key == null) {
             System.out.println("Key not found");
         }
