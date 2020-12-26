@@ -6,7 +6,7 @@ import javax.swing.*;
 import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.IOException;
+import java.io.*;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
@@ -15,16 +15,25 @@ import java.util.Enumeration;
 
 public class App extends JFrame {
     private Model model;
+    private KeyStore ks;
     public void setModel(Model model) {
         this.model = model;
     }
+    JButton searchButton;
+
+
+    JFileChooser fileChooserKeyStore = new JFileChooser(System.getProperty("user.dir"));
+    JLabel fileKeyStore = new JLabel("");
     // Key
     JTextArea textArea = new JTextArea(30, 10);
     JScrollPane jspKey = new JScrollPane(textArea);
+    JButton buttonOpenKeyStore = new JButton("KeyStore");
+    JPanel panelKey = new JPanel(new BorderLayout());
 
     // Name
     JTextField input = new JTextField(20);
     JScrollPane jspName = new JScrollPane(input);
+    JPanel panelName = new JPanel(new BorderLayout());
 
     // Certificate
     JFileChooser fileChooserCertificate = new JFileChooser(System.getProperty("user.dir"));
@@ -51,12 +60,9 @@ public class App extends JFrame {
 
         });
 
-        buttonOpenFileChooserCertificate.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showFileChooser("Certificate");
-            }
-        });
+        buttonOpenKeyStore.addActionListener(e -> showFileChooser("KeyStore"));
+
+        buttonOpenFileChooserCertificate.addActionListener(e -> showFileChooser("Certificate"));
         buttonOpenFileChooserKeys.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -122,7 +128,8 @@ public class App extends JFrame {
         JLabel endLabel = new JLabel("--------------------------------------------------------------------------------------------------------------------------------------------------");
         this.endPanel.add(endLabel, BorderLayout.NORTH);
 
-        JButton searchButton = new JButton("Search !");
+        searchButton = new JButton("Search !");
+        searchButton.setEnabled(false);
         ActionListener searchListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -151,7 +158,7 @@ public class App extends JFrame {
                                 }
                             }
                             try {
-                                model.testArthur(privKey);
+                                model.searchByKey(privKey, ks);
                             } catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | SignatureException | InvalidKeyException error) {
                                 error.printStackTrace();
                             }
@@ -179,17 +186,25 @@ public class App extends JFrame {
         this.centerPanel.remove(buttonOpenFileChooserKeys);
         this.centerPanel.remove(buttonOpenFileChooserCertificate);
         this.centerPanel.remove(btnPanel);
+        this.centerPanel.remove(panelKey);
+        this.centerPanel.remove(panelName);
 
         switch(value) {
             case "Key":
                 System.out.println("Key");
-                this.centerPanel.add(jspKey, BorderLayout.SOUTH);
-                this.setPreferredSize(new Dimension(600, 600));
+                panelKey.add(buttonOpenKeyStore, BorderLayout.WEST);
+                panelKey.add(fileKeyStore, BorderLayout.CENTER);
+                panelKey.add(jspKey, BorderLayout.SOUTH);
+                this.centerPanel.add(panelKey, BorderLayout.SOUTH);
+                this.setPreferredSize(new Dimension(600, 650));
                 break;
             case "Name":
                 System.out.println("Name");
-                this.centerPanel.add(jspName, BorderLayout.SOUTH);
-                this.setPreferredSize(new Dimension(600, 150));
+                panelName.add(buttonOpenKeyStore, BorderLayout.WEST);
+                panelName.add(fileKeyStore, BorderLayout.CENTER);
+                panelName.add(jspName, BorderLayout.SOUTH);
+                this.centerPanel.add(panelName, BorderLayout.SOUTH);
+                this.setPreferredSize(new Dimension(600, 190));
                 break;
             case "Certificate":
                 System.out.println("Certificate");
@@ -213,13 +228,52 @@ public class App extends JFrame {
         switch(value) {
             case "Certificate":
                 fileChooserCertificate.showOpenDialog(this);
-                this.fileCertificateName.setText(fileChooserCertificate.getSelectedFile().getName());
+                if (fileChooserCertificate.getSelectedFile() != null) {
+                    this.fileCertificateName.setText(fileChooserCertificate.getSelectedFile().getName());
+                }
                 break;
             case "Keys":
                 fileChooserKeys.showOpenDialog(this);
-                this.fileKeysName.setText(fileChooserKeys.getSelectedFile().getName());
+                if (fileChooserKeys.getSelectedFile() != null) {
+                    this.fileKeysName.setText(fileChooserKeys.getSelectedFile().getName());
+                }
+                break;
+            case "KeyStore":
+                fileChooserKeyStore.showOpenDialog(this);
+                if (fileChooserKeyStore.getSelectedFile() != null) {
+                    String pwd = JOptionPane.showInputDialog("Password : ");
+                    InputStream is = null;
+                    try {
+                        is = new BufferedInputStream(new FileInputStream(fileChooserKeyStore.getSelectedFile()));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    KeyStore ks = null;
+                    if (is != null) {
+                        try {
+                            KeyStore ksTry = KeyStore.getInstance("JCEKS");
+                            ksTry.load(is, pwd.toCharArray());
+                            ks = ksTry;
+                        } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (ks != null) {
+                        System.out.println("opened");
+                        this.fileKeyStore.setText(fileChooserKeyStore.getSelectedFile().getName());
+                        this.ks = ks;
+                    }
+                    else {
+                        JOptionPane.showMessageDialog(this, "Wrong password or file format.", "KeyStore opening failed", JOptionPane.OK_OPTION);
+                        fileChooserKeyStore.setSelectedFile(null);
+                    }
+                }
                 break;
             default:break;
+        }
+        if (fileChooserKeyStore.getSelectedFile() != null ||
+                (fileChooserCertificate.getSelectedFile() != null && fileChooserKeys.getSelectedFile() != null)) {
+            this.searchButton.setEnabled(true);
         }
     }
 
