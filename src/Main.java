@@ -13,10 +13,11 @@ public class Main {
     public static void main(String[] args) throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, NoSuchPaddingException, UnrecoverableKeyException, InvalidKeyException, SignatureException {
         model = new Model();
         //model.testArthur();
-        model.testGregoire();
+        //model.testGregoire();
 
-        /*App app = new App();
+        App app = new App();
         app.pack();
-        app.setVisible(true);*/
+        app.setVisible(true);
+        app.setModel(model);
     }
 }
