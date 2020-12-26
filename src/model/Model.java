@@ -54,7 +54,7 @@ public class Model {
         return counter;
     }
 
-    public KeyType identifyPrivateKeyType(Key key){
+    public KeyType identifyKeyType(Key key){
         KeyType result = KeyType.DSA;
         if(key instanceof ECPrivateKey || key instanceof ECPublicKey)
             result = KeyType.ECDSA;
@@ -142,7 +142,7 @@ public class Model {
     }
 
     private void searchInCertificates(List<X509Certificate> certs, String type, PrivateKey key) {
-        boolean tokenCertificatefound = false;
+        boolean tokenCertificateFound = false;
         for (X509Certificate c : certs) {
             //System.out.println(c.getSubjectX500Principal());
             switch (c.getPublicKey().getAlgorithm()) {
@@ -156,7 +156,7 @@ public class Model {
                     if (type.equals("RSA"))
                         if(validRSAKeyPair((RSAPublicKey) c.getPublicKey(), (RSAPrivateKey) key)) {
                             System.out.println(c.getIssuerDN());
-                            tokenCertificatefound = true;
+                            tokenCertificateFound = true;
                         }
                     break;
                 case "ECDSA":
@@ -166,11 +166,11 @@ public class Model {
                     System.out.println("Algorithm unknown");
                     break;
             }
-            if(tokenCertificatefound) {
+            if(tokenCertificateFound) {
                 break;
             }
         }
-        if(tokenCertificatefound) {
+        if(tokenCertificateFound) {
             System.out.println("Certificate found");
         } else {
             System.out.println("No certificate found");
