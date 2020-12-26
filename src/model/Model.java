@@ -14,6 +14,7 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.asn1.eac.ECDSAPublicKey;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -153,7 +154,7 @@ public class Model {
 
         while(aliases.hasMoreElements()){
             String currAlias = aliases.nextElement();
-            if (ks.isCertificateEntry(currAlias)) {
+            if(ks.isCertificateEntry(currAlias)) {
                 certificates.add((X509Certificate) ks.getCertificate(currAlias));
             }
         }
