@@ -64,7 +64,7 @@ public class Model {
         return result;
     }
 
-    public void testArthur() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, SignatureException, InvalidKeyException {
+    public void testArthur(PrivateKey key) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, SignatureException, InvalidKeyException {
         List<X509Certificate> certificates = new LinkedList<X509Certificate>();
         KeyStore ks = KeyStore.getInstance("JCEKS");
         InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
@@ -116,12 +116,12 @@ public class Model {
             }
         }*/
 
-        PrivateKey key = null;
+        /*PrivateKey key = null;
         try {
             key = (PrivateKey) ks.getKey("keyrsa", "abc123".toCharArray());
         } catch (ClassCastException e) {
             e.printStackTrace();
-        }
+        }*/
 
         if(key instanceof RSAPrivateKey) {
             System.out.println("RSA PrivateKey");

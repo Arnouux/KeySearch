@@ -1,11 +1,21 @@
 package ui;
+import model.Model;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Enumeration;
 
 public class App extends JFrame {
-
+    private Model model;
+    public void setModel(Model model) {
+        this.model = model;
+    }
     // Key
     JTextArea textArea = new JTextArea(30, 10);
     JScrollPane jspKey = new JScrollPane(textArea);
@@ -109,7 +119,66 @@ public class App extends JFrame {
         this.endPanel.setLayout(new BorderLayout());
         JLabel endLabel = new JLabel("--------------------------------------------------------------------------------------------------------------------------------------------------");
         this.endPanel.add(endLabel, BorderLayout.NORTH);
+
         JButton searchButton = new JButton("Search !");
+        ActionListener searchListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                for (Enumeration<AbstractButton> buttons = group.getElements(); buttons.hasMoreElements();) {
+                    AbstractButton button = buttons.nextElement();
+
+                    if (button.isSelected()) {
+                        if(button == optionKey) {
+                            String text = textArea.getText();
+                            text = text.replace("-----BEGIN PRIVATE KEY-----", "");
+                            text = text.replace("-----END PRIVATE KEY-----", "");
+                            text = text.replaceAll("\\s+","");
+                            byte[] decodedBytes = java.util.Base64.getDecoder().decode(text);
+                            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedBytes);
+                            KeyFactory kf = null;
+                            try {
+                                kf = KeyFactory.getInstance("RSA");
+                            } catch (NoSuchAlgorithmException error) {
+                                error.printStackTrace();
+                            }
+                            PrivateKey privKey = null;
+                            try {
+                                privKey = kf.generatePrivate(keySpec);
+                            } catch (InvalidKeySpecException invalidKeySpecException) {
+                                invalidKeySpecException.printStackTrace();
+                            }
+                            System.out.println(privKey);
+                            try {
+                                model.testArthur(privKey);
+                            } catch (KeyStoreException keyStoreException) {
+                                keyStoreException.printStackTrace();
+                            } catch (IOException ioException) {
+                                ioException.printStackTrace();
+                            } catch (CertificateException certificateException) {
+                                certificateException.printStackTrace();
+                            } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
+                                noSuchAlgorithmException.printStackTrace();
+                            } catch (UnrecoverableKeyException unrecoverableKeyException) {
+                                unrecoverableKeyException.printStackTrace();
+                            } catch (SignatureException signatureException) {
+                                signatureException.printStackTrace();
+                            } catch (InvalidKeyException invalidKeyException) {
+                                invalidKeyException.printStackTrace();
+                            }
+                        }
+                        else if (button == optionName) {
+                            System.out.println(input.getText());
+                        }
+                        else if (button == optionCertificate) {
+                            System.out.println(fileCertificateName.getText());
+                            System.out.println(fileKeysName.getText());
+                        }
+                    }
+                }
+            }
+        };
+        searchButton.addActionListener(searchListener);
         this.endPanel.add(searchButton, BorderLayout.SOUTH);
         this.add(endPanel, BorderLayout.SOUTH);
         this.pack();
