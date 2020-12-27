@@ -40,10 +40,6 @@ public class Model {
 
     private App app;
 
-    public void setApp(App app) {
-        this.app = app;
-    }
-
     public byte[] decrypt(PrivateKey key, byte[] ciphertext) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA1AndMGF1Padding");
         cipher.init(Cipher.DECRYPT_MODE, key);
@@ -183,6 +179,10 @@ public class Model {
         } else {
             System.out.println("No certificate found");
         }
+    }
+
+    public void setApp(App app) {
+        this.app = app;
     }
 
     public boolean validDSAKeyPair(DSAPrivateKey privKey, DSAPublicKey pubKey) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
