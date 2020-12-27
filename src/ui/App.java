@@ -15,6 +15,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Enumeration;
+import java.util.List;
 
 public class App extends JFrame {
     private Model model;
@@ -145,7 +146,13 @@ public class App extends JFrame {
                         if(button == optionKey) {
                             String text = textArea.getText();
                             text = text.replace("-----BEGIN PRIVATE KEY-----", "");
+                            text = text.replace("-----BEGIN RSA PRIVATE KEY-----", "");
+                            text = text.replace("-----BEGIN DSA PRIVATE KEY-----", "");
+                            text = text.replace("-----BEGIN EC PRIVATE KEY-----", "");
                             text = text.replace("-----END PRIVATE KEY-----", "");
+                            text = text.replace("-----END RSA PRIVATE KEY-----", "");
+                            text = text.replace("-----END DSA PRIVATE KEY-----", "");
+                            text = text.replace("-----END EC PRIVATE KEY-----", "");
                             text = text.replaceAll("\\s+","");
                             byte[] decodedBytes = java.util.Base64.getDecoder().decode(text);
                             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedBytes);
@@ -168,6 +175,7 @@ public class App extends JFrame {
                         }
                         else if (button == optionName) {
                             System.out.println(input.getText());
+                            model.searchByDN(input.getText(), ks);
                         }
                         else if (button == optionCertificate) {
                             System.out.println(fileCertificateName.getText());
@@ -292,6 +300,28 @@ public class App extends JFrame {
             case 1:
                 System.out.println("Export in file");
                 copyCertificateToFile(certificate);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void exportCertificates(List<X509Certificate> certificates) {
+        int number = certificates.size();
+        String[] options = {"Add in KeyStore", "Export in file"};
+        int response = JOptionPane.showOptionDialog(this, number + " certificate(s) found !", "Certificate found", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        switch (response) {
+            case 0:
+                System.out.println("Add in KeyStore");
+                for (X509Certificate c : certificates) {
+                    addCertificateToKeyStore(c);
+                }
+                break;
+            case 1:
+                System.out.println("Export in file");
+                for (X509Certificate c : certificates) {
+                    copyCertificateToFile(c);
+                }
                 break;
             default:
                 break;

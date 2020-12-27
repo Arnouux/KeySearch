@@ -96,6 +96,47 @@ public class Model {
         }
     }
 
+    public void searchByDN(String dn, KeyStore ks) {
+        List<X509Certificate> certificates = new LinkedList<>();
+        Enumeration<String> aliases = null;
+        try {
+            aliases = ks.aliases();
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        }
+
+        while(true) {
+            assert aliases != null;
+            if (!aliases.hasMoreElements()) break;
+            String alias = aliases.nextElement();
+            try {
+                if (ks.isCertificateEntry(alias)) {
+                    certificates.add((X509Certificate) ks.getCertificate(alias));
+                }
+            } catch (KeyStoreException e) {
+                e.printStackTrace();
+            }
+        }
+
+        boolean tokenFound = false;
+        List<X509Certificate> certificatesFound = new LinkedList<>();
+        for (X509Certificate c : certificates) {
+            System.out.println(c.getIssuerDN());
+            if(c.getIssuerDN().toString().equals(dn)) {
+                certificatesFound.add(c);
+                tokenFound = true;
+            }
+        }
+        if (tokenFound) {
+            app.exportCertificates(certificatesFound);
+        }
+        else {
+            System.out.println("No certificate found");
+        }
+
+
+    }
+
     public void testGregoire() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, NoSuchPaddingException, InvalidKeyException, SignatureException {
         List<X509Certificate> certificates = new LinkedList<X509Certificate>();
         KeyStore ks = KeyStore.getInstance("JCEKS");
