@@ -11,10 +11,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Enumeration;
+import java.util.LinkedList;
 import java.util.List;
 
 public class App extends JFrame {
@@ -41,13 +43,15 @@ public class App extends JFrame {
     JPanel panelName = new JPanel(new BorderLayout());
 
     // Certificate
+    List<File> listFileChooserKeys = new LinkedList<>();
     JFileChooser fileChooserCertificate = new JFileChooser(System.getProperty("user.dir"));
     JFileChooser fileChooserKeys = new JFileChooser(System.getProperty("user.dir"));
     JButton buttonOpenFileChooserCertificate = new JButton("Certificate");
-    JButton buttonOpenFileChooserKeys = new JButton("Keys file");
+    JButton buttonOpenFileChooserKeys = new JButton("Key file");
     JLabel fileCertificateName = new JLabel("");
-    JLabel fileKeysName = new JLabel("");
-    JPanel btnPanel = new JPanel(new GridLayout(2,2, 10, 2));
+    JLabel fileKeysName = new JLabel("0 file selected");
+    JPanel btnPanel = new JPanel(new GridLayout(3,2, 10, 2));
+    JButton buttonResetFileKeys = new JButton("Reset");
 
     JPanel centerPanel = new JPanel();
     JPanel endPanel = new JPanel();
@@ -74,6 +78,12 @@ public class App extends JFrame {
                 showFileChooser("Keys");
             }
         });
+        buttonResetFileKeys.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resetListKeyFiles();
+            }
+        });
 
         this.setPreferredSize(new Dimension(600, 600));
 
@@ -89,7 +99,7 @@ public class App extends JFrame {
         JRadioButton optionName = new JRadioButton("Distinguished Name");
         optionName.setHorizontalAlignment(JLabel.CENTER);
         optionName.setVerticalAlignment(JLabel.NORTH);
-        JRadioButton optionCertificate = new JRadioButton("Certificate");
+        JRadioButton optionCertificate = new JRadioButton("Certificate & keys");
         optionCertificate.setVerticalAlignment(JLabel.NORTH);
 
 
@@ -145,28 +155,8 @@ public class App extends JFrame {
                     if (button.isSelected()) {
                         if(button == optionKey) {
                             String text = textArea.getText();
-                            text = text.replace("-----BEGIN PRIVATE KEY-----", "");
-                            text = text.replace("-----BEGIN RSA PRIVATE KEY-----", "");
-                            text = text.replace("-----BEGIN DSA PRIVATE KEY-----", "");
-                            text = text.replace("-----BEGIN EC PRIVATE KEY-----", "");
-                            text = text.replace("-----END PRIVATE KEY-----", "");
-                            text = text.replace("-----END RSA PRIVATE KEY-----", "");
-                            text = text.replace("-----END DSA PRIVATE KEY-----", "");
-                            text = text.replace("-----END EC PRIVATE KEY-----", "");
-                            text = text.replaceAll("\\s+","");
-                            byte[] decodedBytes = java.util.Base64.getDecoder().decode(text);
-                            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedBytes);
-                            KeyFactory kf = null;
+                            privKey = base64toPrivateKey(text);
 
-                            for(KeyType type : KeyType.values()) {
-                                try {
-                                    kf = KeyFactory.getInstance(type.name());
-                                    privKey = kf.generatePrivate(keySpec);
-                                    break;
-                                } catch (NoSuchAlgorithmException | InvalidKeySpecException error) {
-                                    System.out.println("Not " + type.name() + " key type.");
-                                }
-                            }
                             try {
                                 model.searchByKey(privKey, ks);
                             } catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | SignatureException | InvalidKeyException error) {
@@ -179,7 +169,20 @@ public class App extends JFrame {
                         }
                         else if (button == optionCertificate) {
                             System.out.println(fileCertificateName.getText());
-                            System.out.println(fileKeysName.getText());
+                            CertificateFactory fact = null;
+                            FileInputStream is = null;
+                            X509Certificate certificate = null;
+                            try {
+                                fact = CertificateFactory.getInstance("X.509");
+                                is = new FileInputStream(fileChooserCertificate.getSelectedFile());
+                                certificate = (X509Certificate) fact.generateCertificate(is);
+                            } catch (CertificateException | FileNotFoundException certificateException) {
+                                certificateException.printStackTrace();
+                            }
+                            for(File f : listFileChooserKeys) {
+                                String text;
+                            }
+                            //model.searchMatchCertificateAndKeys(listFileChooserKeys, certificate);
                         }
                     }
                 }
@@ -189,6 +192,38 @@ public class App extends JFrame {
         this.endPanel.add(searchButton, BorderLayout.SOUTH);
         this.add(endPanel, BorderLayout.SOUTH);
         this.pack();
+    }
+
+    private PrivateKey base64toPrivateKey(String text) {
+        text = text.replace("-----BEGIN PRIVATE KEY-----", "");
+        text = text.replace("-----BEGIN RSA PRIVATE KEY-----", "");
+        text = text.replace("-----BEGIN DSA PRIVATE KEY-----", "");
+        text = text.replace("-----BEGIN EC PRIVATE KEY-----", "");
+        text = text.replace("-----END PRIVATE KEY-----", "");
+        text = text.replace("-----END RSA PRIVATE KEY-----", "");
+        text = text.replace("-----END DSA PRIVATE KEY-----", "");
+        text = text.replace("-----END EC PRIVATE KEY-----", "");
+        text = text.replaceAll("\\s+","");
+        byte[] decodedBytes = java.util.Base64.getDecoder().decode(text);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedBytes);
+        KeyFactory kf = null;
+        PrivateKey privateKey = null;
+
+        for(KeyType type : KeyType.values()) {
+            try {
+                kf = KeyFactory.getInstance(type.name());
+                privateKey = kf.generatePrivate(keySpec);
+                break;
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException error) {
+                System.out.println("Not " + type.name() + " key type.");
+            }
+        }
+        return privateKey;
+    }
+
+    private void resetListKeyFiles() {
+        this.fileKeysName.setText("0 file selected");
+        this.listFileChooserKeys = new LinkedList<>();
     }
 
     private void updatePanels(String value) {
@@ -202,32 +237,44 @@ public class App extends JFrame {
 
         switch(value) {
             case "Key":
-                System.out.println("Key");
                 panelKey.add(buttonOpenKeyStore, BorderLayout.WEST);
                 panelKey.add(fileKeyStore, BorderLayout.CENTER);
                 panelKey.add(jspKey, BorderLayout.SOUTH);
+                if(fileChooserKeyStore.getSelectedFile() == null) {
+                    searchButton.setEnabled(false);
+                } else {
+                    searchButton.setEnabled(true);
+                }
                 this.centerPanel.add(panelKey, BorderLayout.SOUTH);
                 this.setPreferredSize(new Dimension(600, 650));
                 break;
             case "Name":
-                System.out.println("Name");
                 panelName.add(buttonOpenKeyStore, BorderLayout.WEST);
                 panelName.add(fileKeyStore, BorderLayout.CENTER);
                 panelName.add(jspName, BorderLayout.SOUTH);
+                if(fileChooserKeyStore.getSelectedFile() == null) {
+                    searchButton.setEnabled(false);
+                } else {
+                    searchButton.setEnabled(true);
+                }
                 this.centerPanel.add(panelName, BorderLayout.SOUTH);
                 this.setPreferredSize(new Dimension(600, 190));
                 break;
             case "Certificate":
-                System.out.println("Certificate");
-
                 btnPanel.add(buttonOpenFileChooserCertificate);
                 btnPanel.add(fileCertificateName);
                 btnPanel.add(buttonOpenFileChooserKeys);
                 btnPanel.add(fileKeysName);
-
+                btnPanel.add(buttonResetFileKeys);
+                if(fileChooserCertificate.getSelectedFile() == null || fileChooserKeys.getSelectedFile() == null) {
+                    searchButton.setEnabled(false);
+                }
+                else {
+                    searchButton.setEnabled(true);
+                }
                 this.centerPanel.add(btnPanel, BorderLayout.SOUTH);
                 //fileChooserCertificate.showOpenDialog(this);
-                this.setPreferredSize(new Dimension(600, 190));
+                this.setPreferredSize(new Dimension(600, 210));
                 break;
             default:break;
         }
@@ -246,7 +293,13 @@ public class App extends JFrame {
             case "Keys":
                 fileChooserKeys.showOpenDialog(this);
                 if (fileChooserKeys.getSelectedFile() != null) {
-                    this.fileKeysName.setText(fileChooserKeys.getSelectedFile().getName());
+                    this.listFileChooserKeys.add(fileChooserKeys.getSelectedFile());
+                    if (this.listFileChooserKeys.size() == 1) {
+                        this.fileKeysName.setText(this.listFileChooserKeys.size() + " key file selected");
+                    }
+                    else if (this.listFileChooserKeys.size() > 1) {
+                        this.fileKeysName.setText(this.listFileChooserKeys.size() + " key files selected");
+                    }
                 }
                 break;
             case "KeyStore":
