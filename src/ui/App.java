@@ -316,7 +316,7 @@ public class App extends JFrame {
                     ksTry.load(is, pwd.toCharArray());
                     ks2 = ksTry;
                 } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
-                    //e.printStackTrace();
+                    e.printStackTrace();
                 }
             }
             if (ks2 != null) {
@@ -326,15 +326,17 @@ public class App extends JFrame {
                     X509Certificate[] certChain = new X509Certificate[1];
                     certChain[0] = certificate;
                     ks2.setKeyEntry(aliasName, privKey, pwdEntry.toCharArray(),certChain);
+                    OutputStream os = new BufferedOutputStream(new FileOutputStream(fileChooserKeyStore.getSelectedFile()));
+                    ks2.store(os, pwd.toCharArray());
                     System.out.println("Certificate added");
-                } catch (KeyStoreException e) {
+                } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
                     e.printStackTrace();
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Wrong password or file format.", "KeyStore opening failed", JOptionPane.OK_OPTION);
-                fileChooserKeyStore.setSelectedFile(null);
             }
         }
+        fileChooserKeyStore.setSelectedFile(null);
         privKey = null;
     }
 
