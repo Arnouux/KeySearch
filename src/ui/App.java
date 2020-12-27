@@ -325,7 +325,7 @@ public class App extends JFrame {
                 try {
                     X509Certificate[] certChain = new X509Certificate[1];
                     certChain[0] = certificate;
-                    ks2.setKeyEntry(aliasName, privKey, pwdEntry.toCharArray(),certChain);
+                    ks2.setKeyEntry(aliasName, privKey, pwdEntry.toCharArray(), certChain);
                     OutputStream os = new BufferedOutputStream(new FileOutputStream(fileChooserKeyStore.getSelectedFile()));
                     ks2.store(os, pwd.toCharArray());
                     System.out.println("Certificate added");
