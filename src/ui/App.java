@@ -7,7 +7,9 @@ import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
@@ -17,6 +19,7 @@ import java.util.Enumeration;
 public class App extends JFrame {
     private Model model;
     private KeyStore ks;
+    private PrivateKey privKey;
     public void setModel(Model model) {
         this.model = model;
     }
@@ -147,7 +150,6 @@ public class App extends JFrame {
                             byte[] decodedBytes = java.util.Base64.getDecoder().decode(text);
                             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedBytes);
                             KeyFactory kf = null;
-                            PrivateKey privKey = null;
 
                             for(KeyType type : KeyType.values()) {
                                 try {
@@ -285,12 +287,76 @@ public class App extends JFrame {
         switch (response) {
             case 0:
                 System.out.println("Add in KeyStore");
+                addCertificateToKeyStore(certificate);
                 break;
             case 1:
                 System.out.println("Export in file");
+                copyCertificateToFile(certificate);
                 break;
             default:
                 break;
+        }
+    }
+
+    private void addCertificateToKeyStore(X509Certificate certificate) {
+        JFileChooser fileChooserKeyStore = new JFileChooser(System.getProperty("user.dir"));
+        fileChooserKeyStore.showOpenDialog(this);
+        if (fileChooserKeyStore.getSelectedFile() != null) {
+            String pwd = JOptionPane.showInputDialog("Password : ");
+            InputStream is = null;
+            try {
+                is = new BufferedInputStream(new FileInputStream(fileChooserKeyStore.getSelectedFile()));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            KeyStore ks2 = null;
+            if (is != null) {
+                try {
+                    KeyStore ksTry = KeyStore.getInstance("JCEKS");
+                    ksTry.load(is, pwd.toCharArray());
+                    ks2 = ksTry;
+                } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
+                    //e.printStackTrace();
+                }
+            }
+            if (ks2 != null) {
+                String aliasName = JOptionPane.showInputDialog("Alias name : ");
+                String pwdEntry = JOptionPane.showInputDialog("Set password : ");
+                try {
+                    X509Certificate[] certChain = new X509Certificate[1];
+                    certChain[0] = certificate;
+                    ks2.setKeyEntry(aliasName, privKey, pwdEntry.toCharArray(),certChain);
+                    System.out.println("Certificate added");
+                } catch (KeyStoreException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Wrong password or file format.", "KeyStore opening failed", JOptionPane.OK_OPTION);
+                fileChooserKeyStore.setSelectedFile(null);
+            }
+        }
+        privKey = null;
+    }
+
+    private void copyCertificateToFile(X509Certificate certificate) {
+        String fileName = JOptionPane.showInputDialog("File name : ");
+        FileOutputStream fileWrite = null;
+        try {
+            fileWrite = new FileOutputStream(fileName + ".cer");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
+            assert fileWrite != null;
+            fileWrite.write(certificate.getEncoded());
+        } catch (IOException | CertificateEncodingException e) {
+            e.printStackTrace();
+        }
+        try {
+            fileWrite.flush();
+            fileWrite.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
