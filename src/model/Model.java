@@ -74,7 +74,6 @@ public class Model {
 
     public void searchByKey(PrivateKey key, KeyStore ks) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, SignatureException, InvalidKeyException {
         List<X509Certificate> certificates = new LinkedList<X509Certificate>();
-
         Enumeration<String> aliases = ks.aliases();
 
         while(aliases.hasMoreElements()) {
@@ -231,5 +230,17 @@ public class Model {
         result = message.equals(decrypted);
 
         return result;
+    }
+
+    public void testArthur() {
+        KeyStore ks = null;
+        try {
+            InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
+            KeyStore ksTry = KeyStore.getInstance("JCEKS");
+            ksTry.load(is, "abc123".toCharArray());
+            ks = ksTry;
+        } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
+            //e.printStackTrace();
+        }
     }
 }
