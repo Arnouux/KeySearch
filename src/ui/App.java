@@ -15,8 +15,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Enumeration;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
 
 public class App extends JFrame {
@@ -179,10 +178,22 @@ public class App extends JFrame {
                             } catch (CertificateException | FileNotFoundException certificateException) {
                                 certificateException.printStackTrace();
                             }
+                            TreeMap<String, PrivateKey> keys = new TreeMap<>();
                             for(File f : listFileChooserKeys) {
-                                String text;
+                                byte[] data = null;
+                                try {
+                                    FileInputStream fis = new FileInputStream(f);
+                                    data = new byte[(int) f.length()];
+                                    fis.read(data);
+                                    fis.close();
+                                } catch (IOException error) {
+                                    error.printStackTrace();
+                                }
+                                assert data != null;
+                                PrivateKey key = base64toPrivateKey(new String(data, StandardCharsets.UTF_8));
+                                keys.put(f.getName(), key);
                             }
-                            //model.searchMatchCertificateAndKeys(listFileChooserKeys, certificate);
+                            model.searchMatchCertificateAndKeys(keys, certificate);
                         }
                     }
                 }

@@ -9,10 +9,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.*;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.asn1.eac.ECDSAPublicKey;
@@ -282,6 +279,67 @@ public class Model {
             ks = ksTry;
         } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
             //e.printStackTrace();
+        }
+    }
+
+    public void searchMatchCertificateAndKeys(TreeMap<String, PrivateKey> keys, X509Certificate certificate) {
+        boolean tokenKeyFound = false;
+        PrivateKey matchKey = null;
+        PublicKey publicKey = certificate.getPublicKey();
+        String alg = publicKey.getAlgorithm();
+        System.out.println(alg);
+        switch (alg) {
+            case "RSA":
+                RSAPublicKey RSApublicKey = (RSAPublicKey) publicKey;
+                for (Map.Entry<String,PrivateKey> key : keys.entrySet()) {
+                    if(key.getValue().getAlgorithm().equals(alg)) {
+                        if(validRSAKeyPair((RSAPrivateKey) key.getValue(), RSApublicKey)) {
+                            System.out.println(key.getKey());
+                            tokenKeyFound = true;
+                            matchKey = key.getValue();
+                            break;
+                        }
+                    }
+                }
+                break;
+            case "DSA":
+                DSAPublicKey DSApublicKey = (DSAPublicKey) publicKey;
+                for (Map.Entry<String,PrivateKey> key : keys.entrySet()) {
+                    if(key.getValue().getAlgorithm().equals(alg)) {
+                        try {
+                            if(validDSAKeyPair((DSAPrivateKey) key.getValue(), DSApublicKey)) {
+                                System.out.println(key.getKey());
+                                tokenKeyFound = true;
+                                matchKey = key.getValue();
+                                break;
+                            }
+                        } catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                break;
+            case "ECDSA":
+                ECPublicKey ECpublicKey = (ECPublicKey) publicKey;
+                for (Map.Entry<String,PrivateKey> key : keys.entrySet()) {
+                    if(key.getValue().getAlgorithm().equals(alg)) {
+                        if(validECDSAKeyPair((ECPrivateKey) key.getValue(), ECpublicKey)) {
+                            System.out.println(key.getKey());
+                            tokenKeyFound = true;
+                            matchKey = key.getValue();
+                            break;
+                        }
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+
+        if(tokenKeyFound) {
+            System.out.println("Key found");
+        } else {
+            System.out.println("No match found");
         }
     }
 }
