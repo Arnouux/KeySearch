@@ -1,5 +1,5 @@
 # KeySearch
-Crypto project
+Cryptography project by @Arnouux, @GregoirePelegrin, @Onidox
 
 You can search for :
 
