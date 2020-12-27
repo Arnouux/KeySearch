@@ -76,7 +76,7 @@ public class App extends JFrame {
 
         this.setLayout(new BorderLayout());
 
-        JLabel label = new JLabel("Cryptography project, by Arthur, Bastien & Grégoire");
+        JLabel label = new JLabel("Cryptography project, by Arthur, Bastien & Grégoire - ENSISA 2020");
         label.setHorizontalAlignment(JLabel.CENTER);
         this.add(label, BorderLayout.NORTH);
 
