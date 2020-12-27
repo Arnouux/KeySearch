@@ -4,25 +4,11 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.*;
 import java.util.*;
 
-import org.apache.commons.codec.binary.Base64;
-import org.bouncycastle.asn1.eac.ECDSAPublicKey;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.cert.*;
-import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
-import org.bouncycastle.crypto.util.PrivateKeyFactory;
-import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyPairGeneratorSpi;
-import org.bouncycastle.operator.*;
-import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
-import org.bouncycastle.x509.X509V3CertificateGenerator;
 import ui.App;
 
 import javax.crypto.BadPaddingException;
@@ -31,9 +17,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 public class Model {
-    private List<X509Certificate> certs;
-    private List<PrivateKey> keys;
-    private List<KeyStore> ks;
 
     private App app;
 
@@ -66,7 +49,7 @@ public class Model {
     }
 
     public void searchByKey(PrivateKey key, KeyStore ks) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, SignatureException, InvalidKeyException {
-        List<X509Certificate> certificates = new LinkedList<X509Certificate>();
+        List<X509Certificate> certificates = new LinkedList<>();
         Enumeration<String> aliases = ks.aliases();
 
         while(aliases.hasMoreElements()) {
@@ -134,8 +117,8 @@ public class Model {
 
     }
 
-    public void testGregoire() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, NoSuchPaddingException, InvalidKeyException, SignatureException {
-        List<X509Certificate> certificates = new LinkedList<X509Certificate>();
+    public void testGregoire() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, InvalidKeyException, SignatureException {
+        List<X509Certificate> certificates = new LinkedList<>();
         KeyStore ks = KeyStore.getInstance("JCEKS");
         InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
         ks.load(is, "abc123".toCharArray());
@@ -222,10 +205,9 @@ public class Model {
         this.app = app;
     }
 
-    public boolean validDSAKeyPair(DSAPrivateKey privKey, DSAPublicKey pubKey) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
-        // TODO: Verify if DSA public/private key pair is valid
+    public boolean validDSAKeyPair(DSAPrivateKey privateKey, DSAPublicKey pubKey) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
         Signature signer = Signature.getInstance("SHA256withDSA");
-        signer.initSign(privKey);
+        signer.initSign(privateKey);
         byte[] message = "This message must be signed in DSA".getBytes(StandardCharsets.UTF_8);
         signer.update(message, 0, message.length);
         byte[] signatureGenerated = signer.sign();
@@ -235,51 +217,30 @@ public class Model {
         return signer.verify(signatureGenerated);
     }
 
-    public boolean validECDSAKeyPair(ECPrivateKey privKey, ECPublicKey pubKey){
-        boolean result = false;
+    public boolean validECDSAKeyPair(ECPrivateKey privateKey, ECPublicKey publicKey){
         // TODO: Verify if ECDSA public/private key pair is valid
-        return result;
+        return false;
     }
 
     public boolean validRSAKeyPair(RSAPrivateKey privateKey, RSAPublicKey publicKey){
-        boolean result = false;
-
         String message =  "Hello decrypt me";
 
         byte[] encrypted = null;
         try {
             byte[] sut = message.getBytes(StandardCharsets.UTF_8);
             encrypted = encrypt(publicKey, sut);
-            //System.out.println("ENCRYPTED : ");
-            //System.out.println(new String(encrypted, "UTF-8"));
         } catch (NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
 
         String decrypted = null;
         try {
-            decrypted = new String(decrypt((PrivateKey) privateKey, encrypted), "UTF-8");
-            //System.out.println("DECRYPTED : " + decrypted);
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | UnsupportedEncodingException e) {
+            decrypted = new String(decrypt(privateKey, encrypted), StandardCharsets.UTF_8);
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             e.printStackTrace();
         }
 
-        //System.out.println(message.equals(decrypted));
-        result = message.equals(decrypted);
-
-        return result;
-    }
-
-    public void testArthur() {
-        KeyStore ks = null;
-        try {
-            InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
-            KeyStore ksTry = KeyStore.getInstance("JCEKS");
-            ksTry.load(is, "abc123".toCharArray());
-            ks = ksTry;
-        } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
-            //e.printStackTrace();
-        }
+        return message.equals(decrypted);
     }
 
     public void searchMatchCertificateAndKeys(TreeMap<String, PrivateKey> keys, X509Certificate certificate) {
@@ -338,6 +299,7 @@ public class Model {
 
         if(tokenKeyFound) {
             System.out.println("Key found");
+            System.out.println(matchKey);
         } else {
             System.out.println("No match found");
         }

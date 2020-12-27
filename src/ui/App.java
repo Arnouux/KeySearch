@@ -3,7 +3,6 @@ import model.KeyType;
 import model.Model;
 
 import javax.swing.*;
-import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -21,7 +20,7 @@ import java.util.List;
 public class App extends JFrame {
     private Model model;
     private KeyStore ks;
-    private PrivateKey privKey;
+    private PrivateKey privateKey;
     public void setModel(Model model) {
         this.model = model;
     }
@@ -69,20 +68,9 @@ public class App extends JFrame {
         });
 
         buttonOpenKeyStore.addActionListener(e -> showFileChooser("KeyStore"));
-
         buttonOpenFileChooserCertificate.addActionListener(e -> showFileChooser("Certificate"));
-        buttonOpenFileChooserKeys.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showFileChooser("Keys");
-            }
-        });
-        buttonResetFileKeys.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                resetListKeyFiles();
-            }
-        });
+        buttonOpenFileChooserKeys.addActionListener(e -> showFileChooser("Keys"));
+        buttonResetFileKeys.addActionListener(e -> resetListKeyFiles());
 
         this.setPreferredSize(new Dimension(600, 600));
 
@@ -112,21 +100,14 @@ public class App extends JFrame {
         this.centerPanel.add(optionName, BorderLayout.CENTER);
         this.centerPanel.add(optionCertificate, BorderLayout.EAST);
 
-        //this.add(optionKey, BorderLayout.WEST);
-        //this.add(optionName, BorderLayout.CENTER);
-        //this.add(optionCertificate, BorderLayout.EAST);
-
-        ItemListener listener = new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if(e.getStateChange() == 1) {
-                    if (e.getSource() == optionKey) {
-                        updatePanels("Key");
-                    } else if (e.getSource() == optionName) {
-                        updatePanels("Name");
-                    } else if (e.getSource() == optionCertificate) {
-                        updatePanels("Certificate");
-                    }
+        ItemListener listener = e -> {
+            if(e.getStateChange() == ItemEvent.SELECTED) {
+                if (e.getSource() == optionKey) {
+                    updatePanels("Key");
+                } else if (e.getSource() == optionName) {
+                    updatePanels("Name");
+                } else if (e.getSource() == optionCertificate) {
+                    updatePanels("Certificate");
                 }
             }
         };
@@ -144,57 +125,55 @@ public class App extends JFrame {
 
         searchButton = new JButton("Search !");
         searchButton.setEnabled(false);
-        ActionListener searchListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        ActionListener searchListener = e -> {
+            for (Enumeration<AbstractButton> buttons = group.getElements(); buttons.hasMoreElements();) {
+                AbstractButton button = buttons.nextElement();
 
-                for (Enumeration<AbstractButton> buttons = group.getElements(); buttons.hasMoreElements();) {
-                    AbstractButton button = buttons.nextElement();
+                if (button.isSelected()) {
+                    if(button == optionKey) {
+                        String text = textArea.getText();
+                        privateKey = base64toPrivateKey(text);
 
-                    if (button.isSelected()) {
-                        if(button == optionKey) {
-                            String text = textArea.getText();
-                            privKey = base64toPrivateKey(text);
-
+                        try {
+                            model.searchByKey(privateKey, ks);
+                        } catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | SignatureException | InvalidKeyException error) {
+                            error.printStackTrace();
+                        }
+                    }
+                    else if (button == optionName) {
+                        System.out.println(input.getText());
+                        model.searchByDN(input.getText(), ks);
+                    }
+                    else if (button == optionCertificate) {
+                        System.out.println(fileCertificateName.getText());
+                        CertificateFactory fact;
+                        FileInputStream is;
+                        X509Certificate certificate = null;
+                        try {
+                            fact = CertificateFactory.getInstance("X.509");
+                            is = new FileInputStream(fileChooserCertificate.getSelectedFile());
+                            certificate = (X509Certificate) fact.generateCertificate(is);
+                        } catch (CertificateException | FileNotFoundException certificateException) {
+                            certificateException.printStackTrace();
+                        }
+                        TreeMap<String, PrivateKey> keys = new TreeMap<>();
+                        for(File f : listFileChooserKeys) {
                             try {
-                                model.searchByKey(privKey, ks);
-                            } catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | SignatureException | InvalidKeyException error) {
+                                FileInputStream fis = new FileInputStream(f);
+                                byte[] data = new byte[(int) f.length()];
+                                int r = fis.read(data);
+                                if(r > 0) {
+                                    PrivateKey key = base64toPrivateKey(new String(data, StandardCharsets.UTF_8));
+                                    keys.put(f.getName(), key);
+                                }
+                                fis.close();
+                            } catch (IOException error) {
                                 error.printStackTrace();
                             }
+
                         }
-                        else if (button == optionName) {
-                            System.out.println(input.getText());
-                            model.searchByDN(input.getText(), ks);
-                        }
-                        else if (button == optionCertificate) {
-                            System.out.println(fileCertificateName.getText());
-                            CertificateFactory fact = null;
-                            FileInputStream is = null;
-                            X509Certificate certificate = null;
-                            try {
-                                fact = CertificateFactory.getInstance("X.509");
-                                is = new FileInputStream(fileChooserCertificate.getSelectedFile());
-                                certificate = (X509Certificate) fact.generateCertificate(is);
-                            } catch (CertificateException | FileNotFoundException certificateException) {
-                                certificateException.printStackTrace();
-                            }
-                            TreeMap<String, PrivateKey> keys = new TreeMap<>();
-                            for(File f : listFileChooserKeys) {
-                                byte[] data = null;
-                                try {
-                                    FileInputStream fis = new FileInputStream(f);
-                                    data = new byte[(int) f.length()];
-                                    fis.read(data);
-                                    fis.close();
-                                } catch (IOException error) {
-                                    error.printStackTrace();
-                                }
-                                assert data != null;
-                                PrivateKey key = base64toPrivateKey(new String(data, StandardCharsets.UTF_8));
-                                keys.put(f.getName(), key);
-                            }
-                            model.searchMatchCertificateAndKeys(keys, certificate);
-                        }
+                        assert certificate != null;
+                        model.searchMatchCertificateAndKeys(keys, certificate);
                     }
                 }
             }
@@ -217,7 +196,7 @@ public class App extends JFrame {
         text = text.replaceAll("\\s+","");
         byte[] decodedBytes = java.util.Base64.getDecoder().decode(text);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedBytes);
-        KeyFactory kf = null;
+        KeyFactory kf;
         PrivateKey privateKey = null;
 
         for(KeyType type : KeyType.values()) {
@@ -235,6 +214,7 @@ public class App extends JFrame {
     private void resetListKeyFiles() {
         this.fileKeysName.setText("0 file selected");
         this.listFileChooserKeys = new LinkedList<>();
+        searchButton.setEnabled(false);
     }
 
     private void updatePanels(String value) {
@@ -251,11 +231,7 @@ public class App extends JFrame {
                 panelKey.add(buttonOpenKeyStore, BorderLayout.WEST);
                 panelKey.add(fileKeyStore, BorderLayout.CENTER);
                 panelKey.add(jspKey, BorderLayout.SOUTH);
-                if(fileChooserKeyStore.getSelectedFile() == null) {
-                    searchButton.setEnabled(false);
-                } else {
-                    searchButton.setEnabled(true);
-                }
+                searchButton.setEnabled(fileChooserKeyStore.getSelectedFile() != null);
                 this.centerPanel.add(panelKey, BorderLayout.SOUTH);
                 this.setPreferredSize(new Dimension(600, 650));
                 break;
@@ -263,11 +239,7 @@ public class App extends JFrame {
                 panelName.add(buttonOpenKeyStore, BorderLayout.WEST);
                 panelName.add(fileKeyStore, BorderLayout.CENTER);
                 panelName.add(jspName, BorderLayout.SOUTH);
-                if(fileChooserKeyStore.getSelectedFile() == null) {
-                    searchButton.setEnabled(false);
-                } else {
-                    searchButton.setEnabled(true);
-                }
+                searchButton.setEnabled(fileChooserKeyStore.getSelectedFile() != null);
                 this.centerPanel.add(panelName, BorderLayout.SOUTH);
                 this.setPreferredSize(new Dimension(600, 190));
                 break;
@@ -277,12 +249,7 @@ public class App extends JFrame {
                 btnPanel.add(buttonOpenFileChooserKeys);
                 btnPanel.add(fileKeysName);
                 btnPanel.add(buttonResetFileKeys);
-                if(fileChooserCertificate.getSelectedFile() == null || fileChooserKeys.getSelectedFile() == null) {
-                    searchButton.setEnabled(false);
-                }
-                else {
-                    searchButton.setEnabled(true);
-                }
+                searchButton.setEnabled(fileChooserCertificate.getSelectedFile() != null && fileChooserKeys.getSelectedFile() != null);
                 this.centerPanel.add(btnPanel, BorderLayout.SOUTH);
                 //fileChooserCertificate.showOpenDialog(this);
                 this.setPreferredSize(new Dimension(600, 210));
@@ -339,7 +306,7 @@ public class App extends JFrame {
                         this.ks = ks;
                     }
                     else {
-                        JOptionPane.showMessageDialog(this, "Wrong password or file format.", "KeyStore opening failed", JOptionPane.OK_OPTION);
+                        JOptionPane.showMessageDialog(this, "Wrong password or file format.", "KeyStore opening failed", JOptionPane.ERROR_MESSAGE);
                         fileChooserKeyStore.setSelectedFile(null);
                     }
                 }
@@ -419,7 +386,7 @@ public class App extends JFrame {
                 try {
                     X509Certificate[] certChain = new X509Certificate[1];
                     certChain[0] = certificate;
-                    ks2.setKeyEntry(aliasName, privKey, pwdEntry.toCharArray(), certChain);
+                    ks2.setKeyEntry(aliasName, privateKey, pwdEntry.toCharArray(), certChain);
                     OutputStream os = new BufferedOutputStream(new FileOutputStream(fileChooserKeyStore.getSelectedFile()));
                     ks2.store(os, pwd.toCharArray());
                     System.out.println("Certificate added");
@@ -427,11 +394,11 @@ public class App extends JFrame {
                     e.printStackTrace();
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Wrong password or file format.", "KeyStore opening failed", JOptionPane.OK_OPTION);
+                JOptionPane.showMessageDialog(this, "Wrong password or file format.", "KeyStore opening failed", JOptionPane.ERROR_MESSAGE);
             }
         }
         fileChooserKeyStore.setSelectedFile(null);
-        privKey = null;
+        privateKey = null;
     }
 
     private void copyCertificateToFile(X509Certificate certificate) {
