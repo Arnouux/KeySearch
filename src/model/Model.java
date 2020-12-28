@@ -42,7 +42,7 @@ public class Model {
         // TODO: Need to be re-done, to extract type from String
         KeyType result = KeyType.DSA;
         if(key instanceof ECPrivateKey || key instanceof ECPublicKey)
-            result = KeyType.ECDSA;
+            result = KeyType.EC;
         if(key instanceof RSAPrivateKey || key instanceof RSAPublicKey)
             result = KeyType.RSA;
         return result;
