@@ -173,7 +173,15 @@ public class App extends JFrame {
 
                         }
                         assert certificate != null;
-                        model.searchMatchCertificateAndKeys(keys, certificate);
+                        try {
+                            model.searchMatchCertificateAndKeys(keys, certificate);
+                        } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
+                            noSuchAlgorithmException.printStackTrace();
+                        } catch (InvalidKeyException invalidKeyException) {
+                            invalidKeyException.printStackTrace();
+                        } catch (SignatureException signatureException) {
+                            signatureException.printStackTrace();
+                        }
                     }
                 }
             }

@@ -133,7 +133,7 @@ public class Model {
 
         PrivateKey privKey = null;
         try{
-            privKey = (PrivateKey) ks.getKey("firstKey", "abc123".toCharArray());
+            privKey = (PrivateKey) ks.getKey("keyecdsa1", "abc123".toCharArray());
         } catch(ClassCastException e) {
             e.printStackTrace();
         }
@@ -182,8 +182,14 @@ public class Model {
                         }
                     }
                     break;
-                case "ECDSA":
-                    System.out.println("ECDSA");
+                case "EC":
+                    if (type.equals("ECDSA")) {
+                        if(validECDSAKeyPair((ECPrivateKey) key, (ECPublicKey) c.getPublicKey())) {
+                            System.out.println(c.getIssuerDN());
+                            tokenCertificateFound = true;
+                            matchCertificate = c;
+                        }
+                    }
                     break;
                 default:
                     System.out.println("Algorithm unknown");
@@ -217,9 +223,16 @@ public class Model {
         return signer.verify(signatureGenerated);
     }
 
-    public boolean validECDSAKeyPair(ECPrivateKey privateKey, ECPublicKey publicKey){
-        // TODO: Verify if ECDSA public/private key pair is valid
-        return false;
+    public boolean validECDSAKeyPair(ECPrivateKey privateKey, ECPublicKey pubKey) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+        Signature signer = Signature.getInstance("SHA256withECDSA");
+        signer.initSign(privateKey);
+        byte[] message = "This message must be signed in ECDSA".getBytes(StandardCharsets.UTF_8);
+        signer.update(message, 0, message.length);
+        byte[] signatureGenerated = signer.sign();
+
+        signer.initVerify(pubKey);
+        signer.update(message, 0, message.length);
+        return signer.verify(signatureGenerated);
     }
 
     public boolean validRSAKeyPair(RSAPrivateKey privateKey, RSAPublicKey publicKey){
@@ -243,7 +256,7 @@ public class Model {
         return message.equals(decrypted);
     }
 
-    public void searchMatchCertificateAndKeys(TreeMap<String, PrivateKey> keys, X509Certificate certificate) {
+    public void searchMatchCertificateAndKeys(TreeMap<String, PrivateKey> keys, X509Certificate certificate) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         boolean tokenKeyFound = false;
         PrivateKey matchKey = null;
         PublicKey publicKey = certificate.getPublicKey();
