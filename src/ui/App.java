@@ -188,6 +188,11 @@ public class App extends JFrame {
         this.pack();
     }
 
+    /**
+     * Decodes a base64 text to the corresponding key.
+     * @param text the base64 encoded text to decode
+     * @return the private key from the decoded base64
+     */
     private PrivateKey base64toPrivateKey(String text) {
         text = text.replace("-----BEGIN PRIVATE KEY-----", "");
         text = text.replace("-----BEGIN RSA PRIVATE KEY-----", "");
@@ -215,12 +220,19 @@ public class App extends JFrame {
         return privateKey;
     }
 
+    /**
+     * Resets the list of files of keys if the Reset button is pressed
+     */
     private void resetListKeyFiles() {
         this.fileKeysName.setText("0 file selected");
         this.listFileChooserKeys = new LinkedList<>();
         searchButton.setEnabled(false);
     }
 
+    /**
+     * Shows to the user the panel corresponding to the option chosen.
+     * @param value the value of the selected radio button
+     */
     private void updatePanels(String value) {
         this.centerPanel.remove(jspKey);
         this.centerPanel.remove(jspName);
@@ -264,6 +276,11 @@ public class App extends JFrame {
         this.repaint();
     }
 
+    /**
+     * Shows the file chooser window to the user.
+     * Saves the file and informs the user of it.
+     * @param value the value of the selected radio button
+     */
     private void showFileChooser(String value) {
         switch(value) {
             case "Certificate":
@@ -323,6 +340,10 @@ public class App extends JFrame {
         }
     }
 
+    /**
+     * Asks for the type of export the user wants for the given certificate
+     * @param certificate the certificate to export
+     */
     public void exportCertificate(X509Certificate certificate) {
         String[] options = {"Add in KeyStore", "Export in file"};
         int response = JOptionPane.showOptionDialog(this, "Certificate found !", "Certificate found", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
@@ -341,6 +362,10 @@ public class App extends JFrame {
         }
     }
 
+    /**
+     *
+     * @param certificates
+     */
     public void exportCertificates(List<X509Certificate> certificates) {
         int number = certificates.size();
         String[] options = {"Add in KeyStore", "Export in file"};
@@ -363,6 +388,10 @@ public class App extends JFrame {
         }
     }
 
+    /**
+     * Asks for an existing KeyStore file (and password) and saves the given certificate in it (with alias and password asked)
+     * @param certificate the certificate to add
+     */
     private void addCertificateToKeyStore(X509Certificate certificate) {
         JFileChooser fileChooserKeyStore = new JFileChooser(System.getProperty("user.dir"));
         fileChooserKeyStore.showOpenDialog(this);
@@ -405,6 +434,10 @@ public class App extends JFrame {
         privateKey = null;
     }
 
+    /**
+     * Generates a certificate file (.cer) from the given certificate
+     * @param certificate the certificate to save as a file
+     */
     private void copyCertificateToFile(X509Certificate certificate) {
         String fileName = JOptionPane.showInputDialog("File name : ");
         FileOutputStream fileWrite = null;
