@@ -136,7 +136,7 @@ public class App extends JFrame {
 
                         try {
                             model.searchByKey(privateKey, ks);
-                        } catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException | SignatureException | InvalidKeyException error) {
+                        } catch (KeyStoreException | NoSuchAlgorithmException | SignatureException | InvalidKeyException error) {
                             error.printStackTrace();
                         }
                     }
@@ -175,12 +175,8 @@ public class App extends JFrame {
                         assert certificate != null;
                         try {
                             model.searchMatchCertificateAndKeys(keys, certificate);
-                        } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
-                            noSuchAlgorithmException.printStackTrace();
-                        } catch (InvalidKeyException invalidKeyException) {
-                            invalidKeyException.printStackTrace();
-                        } catch (SignatureException signatureException) {
-                            signatureException.printStackTrace();
+                        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException error) {
+                            error.printStackTrace();
                         }
                     }
                 }

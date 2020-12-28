@@ -1,10 +1,7 @@
 package model;
 
-import java.io.*;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.*;
 import java.util.*;
@@ -20,35 +17,50 @@ public class Model {
 
     private App app;
 
+    /**
+     * Decrypts an encrypted statement using RSA cipher.
+     * @param key the key to use to decrypt
+     * @param ciphertext the text in bytes to decrypt
+     * @return the decrypted array of bytes
+     * @throws NoSuchAlgorithmException if "RSA/ECB/OAEPWithSHA1AndMGF1Padding" is not an usable algorithm
+     * @throws InvalidKeyException if signer can't use the given key to sign or verify
+     * @throws NoSuchPaddingException if padding is wrong
+     * @throws BadPaddingException if padding is wrong
+     * @throws IllegalBlockSizeException if block size is wrong
+     */
     public byte[] decrypt(PrivateKey key, byte[] ciphertext) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA1AndMGF1Padding");
         cipher.init(Cipher.DECRYPT_MODE, key);
         return cipher.doFinal(ciphertext);
     }
 
-    public byte[] encrypt(PublicKey key, byte[] plaintext) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException {
+    /**
+     * Encrypts a statement using RSA cipher.
+     * @param key the key to use to encrypt
+     * @param plaintext the text to be encrypted
+     * @return the encrypted array of bytes
+     * @throws NoSuchAlgorithmException if "RSA/ECB/OAEPWithSHA1AndMGF1Padding" is not an usable algorithm
+     * @throws InvalidKeyException if signer can't use the given key to sign or verify
+     * @throws NoSuchPaddingException if padding is wrong
+     * @throws BadPaddingException if padding is wrong
+     * @throws IllegalBlockSizeException if block size is wrong
+     */
+    public byte[] encrypt(PublicKey key, byte[] plaintext) throws NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException {
         Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA1AndMGF1Padding");
         cipher.init(Cipher.ENCRYPT_MODE, key);
         return cipher.doFinal(plaintext);
     }
 
-    public BigInteger generateId() {
-        BigInteger counter = BigInteger.ONE;
-        counter = counter.add(BigInteger.ONE);
-        return counter;
-    }
-
-    public KeyType identifyKeyType(Key key){
-        // TODO: Need to be re-done, to extract type from String
-        KeyType result = KeyType.DSA;
-        if(key instanceof ECPrivateKey || key instanceof ECPublicKey)
-            result = KeyType.EC;
-        if(key instanceof RSAPrivateKey || key instanceof RSAPublicKey)
-            result = KeyType.RSA;
-        return result;
-    }
-
-    public void searchByKey(PrivateKey key, KeyStore ks) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, SignatureException, InvalidKeyException {
+    /**
+     * Searches in the KeyStore given for a possible match for keys with the given private key.
+     * @param key the private key we look a matching key for
+     * @param ks the KeyStore from which we use Certificate entries.
+     * @throws KeyStoreException if there is a problem in the KeyStore with aliases
+     * @throws InvalidKeyException if signer can't use the given key to sign or verify
+     * @throws NoSuchAlgorithmException if an usable algorithm is used
+     * @throws SignatureException if signer can't sign the message
+     */
+    public void searchByKey(PrivateKey key, KeyStore ks) throws KeyStoreException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         List<X509Certificate> certificates = new LinkedList<>();
         Enumeration<String> aliases = ks.aliases();
 
@@ -76,6 +88,11 @@ public class Model {
         }
     }
 
+    /**
+     * Shows all the matching certificates (with the same DN) to the user.
+     * @param dn the Distinguished Name we look for in the KeyStore
+     * @param ks the KeyStore in which we search
+     */
     public void searchByDN(String dn, KeyStore ks) {
         List<X509Certificate> certificates = new LinkedList<>();
         Enumeration<String> aliases = null;
@@ -117,48 +134,16 @@ public class Model {
 
     }
 
-    public void testGregoire() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, InvalidKeyException, SignatureException {
-        List<X509Certificate> certificates = new LinkedList<>();
-        KeyStore ks = KeyStore.getInstance("JCEKS");
-        InputStream is = new BufferedInputStream(new FileInputStream("store.ks"));
-        ks.load(is, "abc123".toCharArray());
-        Enumeration<String> aliases = ks.aliases();
-
-        while(aliases.hasMoreElements()){
-            String currAlias = aliases.nextElement();
-            if(ks.isCertificateEntry(currAlias)) {
-                certificates.add((X509Certificate) ks.getCertificate(currAlias));
-            }
-        }
-
-        PrivateKey privKey = null;
-        try{
-            privKey = (PrivateKey) ks.getKey("keyecdsa1", "abc123".toCharArray());
-        } catch(ClassCastException e) {
-            e.printStackTrace();
-        }
-
-        if(privKey instanceof DSAPrivateKey){
-            System.out.println("DSA PrivateKey");
-            searchInCertificates(certificates, "DSA", privKey);
-        }
-        else if(privKey instanceof ECPrivateKey){
-            System.out.println("ECDSA PrivateKey");
-            searchInCertificates(certificates, "ECDSA", privKey);
-        }
-        else if(privKey instanceof RSAPrivateKey){
-            System.out.println("RSA PrivateKey");
-            searchInCertificates(certificates, "RSA", privKey);
-        }
-        else if (privKey == null){
-            System.out.println("Key not found");
-        }
-        else {
-            System.out.println(privKey.getClass());
-            System.out.println("Key type is not handled.");
-        }
-    }
-
+    /**
+     * Searches in a list of certificates if a given private key matches one certificate's public key.
+     * If a match is found, shows it to the user.
+     * @param certs the list of certificates from the KeyStore we look in
+     * @param type the type of algorithm used for the private key
+     * @param key the private key we search a match for
+     * @throws InvalidKeyException if signer can't use the given key to sign or verify
+     * @throws NoSuchAlgorithmException if "SHA256withDSA" isn't an usable algorithm
+     * @throws SignatureException if signer can't sign the message
+     */
     private void searchInCertificates(List<X509Certificate> certs, String type, PrivateKey key) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         boolean tokenCertificateFound = false;
         X509Certificate matchCertificate = null;
@@ -211,6 +196,16 @@ public class Model {
         this.app = app;
     }
 
+    /**
+     * Checks if an DSA key pair matches.
+     * Signs a test message using the private key and verify it using the public key.
+     * @param privateKey the private key of the key pair
+     * @param pubKey the public key of the key pair
+     * @return true if keys match, false if not
+     * @throws InvalidKeyException if signer can't use the given key to sign or verify
+     * @throws NoSuchAlgorithmException if "SHA256withDSA" isn't an usable algorithm
+     * @throws SignatureException if signer can't sign the message
+     */
     public boolean validDSAKeyPair(DSAPrivateKey privateKey, DSAPublicKey pubKey) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
         Signature signer = Signature.getInstance("SHA256withDSA");
         signer.initSign(privateKey);
@@ -223,6 +218,16 @@ public class Model {
         return signer.verify(signatureGenerated);
     }
 
+    /**
+     * Checks if an ECDSA key pair matches.
+     * Signs a test message using the private key and verify it using the public key.
+     * @param privateKey the private key of the key pair
+     * @param pubKey the public key of the key pair
+     * @return true if keys match, false if not
+     * @throws InvalidKeyException if signer can't use the given key to sign or verify
+     * @throws NoSuchAlgorithmException if "SHA256withDSA" isn't an usable algorithm
+     * @throws SignatureException if signer can't sign the message
+     */
     public boolean validECDSAKeyPair(ECPrivateKey privateKey, ECPublicKey pubKey) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException {
         Signature signer = Signature.getInstance("SHA256withECDSA");
         signer.initSign(privateKey);
@@ -235,6 +240,13 @@ public class Model {
         return signer.verify(signatureGenerated);
     }
 
+    /**
+     * Checks if a RSA key pair matches.
+     * Encrypts a test String using public key and decrypt using private key.
+     * @param privateKey the private key of the key pair
+     * @param publicKey the public key of the key pair
+     * @return true if keys match, false if not
+     */
     public boolean validRSAKeyPair(RSAPrivateKey privateKey, RSAPublicKey publicKey){
         String message =  "Hello decrypt me";
 
@@ -256,6 +268,15 @@ public class Model {
         return message.equals(decrypted);
     }
 
+    /**
+     * Given the public key's algorithm from the certificate, searches in the keys map if algorithm, and key pair match.
+     * If a key pair is found, shows it.
+     * @param keys a TreeMap of PrivateKey with the corresponding file name
+     * @param certificate the certificate in which we look for a key
+     * @throws InvalidKeyException if signer can't use the given key to sign or verify
+     * @throws NoSuchAlgorithmException if "SHA256withDSA" isn't an usable algorithm
+     * @throws SignatureException if signer can't sign the message
+     */
     public void searchMatchCertificateAndKeys(TreeMap<String, PrivateKey> keys, X509Certificate certificate) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         boolean tokenKeyFound = false;
         PrivateKey matchKey = null;
