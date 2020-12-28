@@ -141,11 +141,9 @@ public class App extends JFrame {
                         }
                     }
                     else if (button == optionName) {
-                        System.out.println(input.getText());
                         model.searchByDN(input.getText(), ks);
                     }
                     else if (button == optionCertificate) {
-                        System.out.println(fileCertificateName.getText());
                         CertificateFactory fact;
                         FileInputStream is;
                         X509Certificate certificate = null;
@@ -363,8 +361,8 @@ public class App extends JFrame {
     }
 
     /**
-     *
-     * @param certificates
+     * Asks for the type of export the user wants for the given certificates
+     * @param certificates list of certificates to process
      */
     public void exportCertificates(List<X509Certificate> certificates) {
         int number = certificates.size();
@@ -441,18 +439,22 @@ public class App extends JFrame {
     private void copyCertificateToFile(X509Certificate certificate) {
         String fileName = JOptionPane.showInputDialog("File name : ");
         FileOutputStream fileWrite = null;
-        try {
-            fileWrite = new FileOutputStream(fileName + ".cer");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        if (fileName != null) {
+            try {
+                fileWrite = new FileOutputStream(fileName + ".cer");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                assert fileWrite != null;
+                fileWrite.write(certificate.getEncoded());
+            } catch (IOException | CertificateEncodingException e) {
+                e.printStackTrace();
+            }
         }
         try {
             assert fileWrite != null;
-            fileWrite.write(certificate.getEncoded());
-        } catch (IOException | CertificateEncodingException e) {
-            e.printStackTrace();
-        }
-        try {
             fileWrite.flush();
             fileWrite.close();
         } catch (IOException e) {
@@ -460,5 +462,12 @@ public class App extends JFrame {
         }
     }
 
+    public void showKey(String key) {
+        JOptionPane.showMessageDialog(this, "Key found in " + key);
+    }
+
+    public void showNoMatchFound() {
+        JOptionPane.showMessageDialog(this, "No match found");
+    }
 }
 

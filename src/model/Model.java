@@ -118,7 +118,6 @@ public class Model {
         boolean tokenFound = false;
         List<X509Certificate> certificatesFound = new LinkedList<>();
         for (X509Certificate c : certificates) {
-            System.out.println(c.getIssuerDN());
             if(c.getIssuerDN().toString().equals(dn)) {
                 certificatesFound.add(c);
                 tokenFound = true;
@@ -279,7 +278,7 @@ public class Model {
      */
     public void searchMatchCertificateAndKeys(TreeMap<String, PrivateKey> keys, X509Certificate certificate) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         boolean tokenKeyFound = false;
-        PrivateKey matchKey = null;
+        String matchKey = null;
         PublicKey publicKey = certificate.getPublicKey();
         String alg = publicKey.getAlgorithm();
         System.out.println(alg);
@@ -291,7 +290,7 @@ public class Model {
                         if(validRSAKeyPair((RSAPrivateKey) key.getValue(), RSApublicKey)) {
                             System.out.println(key.getKey());
                             tokenKeyFound = true;
-                            matchKey = key.getValue();
+                            matchKey = key.getKey();
                             break;
                         }
                     }
@@ -305,7 +304,7 @@ public class Model {
                             if(validDSAKeyPair((DSAPrivateKey) key.getValue(), DSApublicKey)) {
                                 System.out.println(key.getKey());
                                 tokenKeyFound = true;
-                                matchKey = key.getValue();
+                                matchKey = key.getKey();
                                 break;
                             }
                         } catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException e) {
@@ -321,7 +320,7 @@ public class Model {
                         if(validECDSAKeyPair((ECPrivateKey) key.getValue(), ECpublicKey)) {
                             System.out.println(key.getKey());
                             tokenKeyFound = true;
-                            matchKey = key.getValue();
+                            matchKey = key.getKey();
                             break;
                         }
                     }
@@ -333,9 +332,10 @@ public class Model {
 
         if(tokenKeyFound) {
             System.out.println("Key found");
-            System.out.println(matchKey);
+            app.showKey(matchKey);
         } else {
             System.out.println("No match found");
+            app.showNoMatchFound();
         }
     }
 }
