@@ -1,6 +1,9 @@
 import model.*;
 import ui.App;
 
+/**
+ * Launcher
+ */
 public class Main {
 
     public static void main(String[] args) {

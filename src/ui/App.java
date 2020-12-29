@@ -17,6 +17,9 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.*;
 import java.util.List;
 
+/**
+ * GUI
+ */
 public class App extends JFrame {
     private Model model;
     private KeyStore ks;
@@ -462,10 +465,17 @@ public class App extends JFrame {
         }
     }
 
+    /**
+     * Shows the file name of the key match to the user.
+     * @param key File name of key
+     */
     public void showKey(String key) {
         JOptionPane.showMessageDialog(this, "Key found in " + key);
     }
 
+    /**
+     * Shows that no match was found to the user.
+     */
     public void showNoMatchFound() {
         JOptionPane.showMessageDialog(this, "No match found");
     }

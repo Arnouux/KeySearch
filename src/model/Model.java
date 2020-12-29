@@ -13,6 +13,9 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+/**
+ * Most of methods used for cryptography.
+ */
 public class Model {
 
     private App app;
