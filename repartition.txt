@@ -1,0 +1,16 @@
+Répartition du travail, Groupe 1 :
+Composé de Arthur Arnoux, Bastien Bodino, Grégoire Pèlegrin
+
+Arthur		Lecture des clés privées depuis leur format en base64
+Arthur 		Vérification de match de clés RSA
+Arthur		Recherche dans un certificat de plusieurs clés
+Arthur		Ouverture de fichiers KeyStore
+Bastien		Vérification de match de clés ECDSA
+Bastien		Recherche par Distinguished Name
+Bastien		Exportation d'un certificat en fichier
+Grégoire	Vérification de match de clés DSA
+Grégoire	Recherche par clé privée
+Grégoire	Ajout d'un certificat dans un KeyStore
+
+Arthur & Grégoire	Générations de clés, certificats, keystores.
+Arthur & Bastien	GUI
